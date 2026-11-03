@@ -1,0 +1,23 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac10_vector_checking_and_bundle_inputs
+# commit: 1182a5d65f8c93e80eff7410d4ab0d8733f48bfa + mutant:ac10_skip_stage_inputs
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________ test_ac10_vector_checking_and_bundle_inputs __________________
+
+    def test_ac10_vector_checking_and_bundle_inputs() -> None:
+        """AC10: Vector copied to bundle inputs/ and listed in SHA256SUMS; vector checker passes on vector and fails on flipped byte."""
+        with tempfile.TemporaryDirectory() as t:
+            tmp = Path(t)
+            manifest = make_exp(tmp)
+            out = tmp / "out"
+            r = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+>           assert r.returncode == 0
+E           AssertionError: assert 1 == 0
+E            +  where 1 = CompletedProcess(args=['/opt/anaconda3/bin/python3', '-m', 'wire', 'run', '/var/folders/31/7x197zc125z0cvx2x2kqftxm000...No such file or directory: \'<tmp>'\n').returncode
+
+acceptance/M08/test_m08.py:856: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac10_vector_checking_and_bundle_inputs
+1 failed in 1.38s
+
+# exit: 1

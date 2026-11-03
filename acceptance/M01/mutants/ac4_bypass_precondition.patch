@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 5827719..4087bc3 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -2728,7 +2728,7 @@ def cmd_start_verify(args: Any) -> int:
+     _require_status(st, m, "BUILT")
+     _require_current_spec(m, st)
+     a = _cur(st)
+-    if args.session == a["builder"].get("session"):
++    if False and args.session == a["builder"].get("session"):
+         raise Refused("verifier session must differ from the builder session (I1)")
+     n = a["n"]
+     branch, rel = f"m/{m}/a{_nn(n)}-verify", f".worktrees/{m}-a{_nn(n)}-verify"

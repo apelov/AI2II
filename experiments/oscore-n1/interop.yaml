@@ -1,0 +1,45 @@
+# Cell N1 of the OSCORE multicast-notifications matrix (~/Code/CoAP, agentwork/steps/p6_matrix.sh):
+# nosec profile, C server, three C clients run one after another (draft-ietf-core-observe-multicast-notifications).
+# Peers and driver: written with Claude (family anthropic), like the C implementation itself.
+# Checkers: must come from another family (DESIGN.md 24.20, lesson L4); see checkers/README.md.
+experiment: oscore-n1-nosec
+env_checks:
+  - name: libcoap
+    command: pkg-config --exists libcoap-3 libcbor
+  - name: multicast-route-lo0
+    command: python3 check_route.py
+peers:
+  - name: c-server
+    path: coap
+    family: anthropic
+    under_test: true
+    build: make coap_server
+    binaries: [coap_server]
+    start: ./coap_server -r mult
+    ready: {command: "grep -q Listening {bundle}/c-server.log", timeout_s: 15}
+  - name: c-clients
+    path: coap
+    family: anthropic
+    under_test: true
+    build: make coap_client
+    binaries: [coap_client]
+    start: python3 ../clients_seq.py --clients 3 --notifs 3
+capture: {interface: lo0, filter: udp port 5683 or udp port 56830}
+cells:
+  - name: N1
+    server: c-server
+    clients: [c-clients]
+    checkers: [observes-n1]
+    timeout_s: 300
+checkers:
+  - name: observes-n1
+    family: google
+    observes_capture: true
+    command: python3 checkers/observes_n1.py {capture}
+    inputs: []
+    negatives:
+      - {input: checkers/negatives/unrelated.pcap, replaces: "{capture}"}
+      - {input: checkers/negatives/no_multicast.pcap, replaces: "{capture}"}
+      - {input: checkers/negatives/no_server_response.pcap, replaces: "{capture}"}
+      - {input: checkers/negatives/fewer_clients.pcap, replaces: "{capture}"}
+      - {input: checkers/negatives/observe_not_increasing.pcap, replaces: "{capture}"}

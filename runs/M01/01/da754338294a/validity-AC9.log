@@ -1,0 +1,17 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01/test_m01.py::test_ac9_integration_lifecycle_and_conflict_reversal
+# commit: da754338294a
+F
+=== FAIL: acceptance/M01/test_m01.py::test_ac9_integration_lifecycle_and_conflict_reversal ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 236, in wrapper
+    fn(r)
+  File "<tmp>", line 603, in test_ac9_integration_lifecycle_and_conflict_reversal
+    assert repo.status("M01") == "REWORK"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+1 failed
+
+# exit: 1

@@ -1,0 +1,19 @@
+id: M03
+title: Verification rigor — test validity checks and two-pass verifier protocol
+objective: Enforce that every PASS criterion has a demonstrated failing case (base commit or mutant)
+depends_on: [M01, M02]
+inputs: [AGENTS.md verifier prompt, acceptance/ test structure]
+deliverables:
+  - "Verifier prompt in AGENTS.md implements Pass 1 (blind falsification) and Pass 2 (claim audit)"
+  - "Orchestrator runs test-validity check: for each criterion, test fails on base commit OR mutant"
+  - "Mutant injection helper (e.g., ignore exit status, invert condition)"
+  - "verification.yaml schema validation (all criteria present, commit/criteria_version match, logs exist)"
+acceptance:
+  AC1: "Verifier Pass 1 writes tests to acceptance/Mxx/ without reading build.md"
+  AC2: "Verifier Pass 2 audits build.md claims against Pass 1 results"
+  AC3: "Test-validity check fails criterion if no failing case demonstrated"
+  AC4: "Mutant demonstration works for criterion that passes at base commit"
+  AC5: "Orchestrator rejects verification.yaml missing criteria, mismatched commit/version, missing logs"
+  AC6: "Verdict PASS only when all criteria PASS + validity + orchestrator re-run passes"
+out_of_scope: [Multiple verifiers per milestone, automated mutant generation]
+size_hint: M

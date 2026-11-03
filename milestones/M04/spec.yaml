@@ -1,0 +1,20 @@
+id: M04
+title: Escalation handling and human gates G3/G4
+objective: Structured escalation with classification, architect arbitration, human decision for design faults
+depends_on: [M01, M03]
+inputs: [escalation triggers from 24.12]
+deliverables:
+  - "Escalation file template (escalations/ENNN.md) with spec, reports, logs, positions"
+  - "Architect arbitration for implementation/verification disputes"
+  - "G3 gate: human decision when DESIGN.md or spec implicated (architect proposes, human decides)"
+  - "G4 gate: human decision when max_attempts/max_escalations/budget exhausted"
+  - "Resolution classifications: IMPLEMENTATION | VERIFICATION | MILESTONE_SPEC | ARCHITECTURE | EXTERNAL_DEPENDENCY | PROTOCOL_SPEC | UNKNOWN"
+  - "Resolution outcomes: REWORK (with guidance), DRAFT (spec change), BLOCKED (external)"
+acceptance:
+  AC1: "Escalation opened automatically on INVALID verdict, max_attempts, builder dispute, design deviation"
+  AC2: "Architect arbitration produces classification + outcome for non-design disputes"
+  AC3: "G3 gate blocks until human approval recorded in approvals/G3-ENNN.md"
+  AC4: "G4 gate blocks until human approval recorded in approvals/G4-ENNN.md"
+  AC5: "REWORK outcome allows builder retry; DRAFT triggers spec change control (24.13); BLOCKED waits"
+out_of_scope: [Automated escalation resolution, ML-based classification]
+size_hint: S

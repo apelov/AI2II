@@ -1,0 +1,18 @@
+diff --git a/wire/run.py b/wire/run.py
+index 41101fb..738989c 100644
+--- a/wire/run.py
++++ b/wire/run.py
+@@ -110,11 +110,8 @@ class _Cell:
+         self.env["experiment"] = {"path": str(m.root), "commit": commit, "dirty": dirty}
+         if commit is None or dirty is None:
+             return "BLOCKED", "experiment directory is not a git work tree"
+-        if dirty:
+-            return (
+-                "BLOCKED",
+-                "experiment directory has uncommitted or untracked changes",
+-            )
++        if False and dirty:
++            pass
+ 
+         self.env["checker_inputs"] = checkers.stage_inputs(
+             m, self.cell["checkers"], self.bundle / "inputs"

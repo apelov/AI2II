@@ -1,0 +1,29 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M09/test_m09.py::test_ac4_observes_decrypted_negatives_and_scratch_rerun
+# commit: 2aaa60c5d19b820ffb2305d399567c9b97353984 + mutant:ac4_skip_scratch_decrypt
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________ test_ac4_observes_decrypted_negatives_and_scratch_rerun ____________
+
+    def test_ac4_observes_decrypted_negatives_and_scratch_rerun() -> None:
+        """AC4: Negatives replace secrets and decrypted view; mutant checkers fail with reason 'checker accepts negative'."""
+        need_tools()
+        # Part 1: Normal run verifies scratch re-run does not modify capture-decrypted.pcapng
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            manifest = make_exp(tmp)
+            out = tmp / "out"
+            res = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+            assert res.returncode == 0
+            bundle = out / "echo"
+            dec = bundle / "capture-decrypted.pcapng"
+            assert dec.is_file()
+            log = (bundle / "checker-decrypted-payload.log").read_text(encoding="utf-8")
+>           assert "replaces {secrets}/client.keys" in log
+E           AssertionError: assert 'replaces {secrets}/client.keys' in 'vector observed in decrypted TLS application data, both directions\n--- negative: negatives/other_payload.pcapng replaces {decrypted}\nvector not decrypted in both directions (saw: [])\n'
+
+acceptance/M09/test_m09.py:272: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M09/test_m09.py::test_ac4_observes_decrypted_negatives_and_scratch_rerun
+1 failed in 2.86s
+
+# exit: 1

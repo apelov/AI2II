@@ -1,0 +1,17 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01/test_m01.py::test_ac2_finish_build_preconditions_and_success
+# commit: beb526e10662
+F
+=== FAIL: acceptance/M01/test_m01.py::test_ac2_finish_build_preconditions_and_success ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 236, in wrapper
+    fn(r)
+  File "<tmp>", line 317, in test_ac2_finish_build_preconditions_and_success
+    assert rc == 1
+           ^^^^^^^
+AssertionError
+
+1 failed
+
+# exit: 1

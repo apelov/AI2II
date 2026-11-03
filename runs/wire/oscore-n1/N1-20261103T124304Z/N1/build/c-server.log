@@ -1,0 +1,1 @@
+clang src/server.o src/cbor_helper.o src/oscore_helper.o -o coap_server -L/opt/homebrew/Cellar/libcoap/4.3.5b/lib -lcoap-3-openssl -L/opt/homebrew/Cellar/libcbor/0.14.0/lib -lcbor

@@ -1,0 +1,66 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M09/test_m09.py::test_ac8_secret_symlink_env_json_and_bundle_integrity
+# commit: a32516cc1d3ccc696ab94f9f1da31ff63236a2a4 + mutant:ac8_skip_decrypt_env_hash
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_ac8_secret_symlink_env_json_and_bundle_integrity _____________
+
+    def test_ac8_secret_symlink_env_json_and_bundle_integrity() -> None:
+        """AC8: Symlinked secret yields BLOCKED; env.json records decrypt sha256; verify-bundle checks integrity."""
+        need_tools()
+        # 1. Symlink secret yields BLOCKED
+        symlink_script = (
+            "import os, sys, tempfile\n"
+            "tgt = tempfile.mkstemp()[1]\n"
+            "os.symlink(tgt, sys.argv[1])\n"
+            "os.environ['SSLKEYLOGFILE'] = tgt\n"
+            "os.execv(sys.executable, [sys.executable, 'src/tls_client.py', *sys.argv[2:]])\n"
+        )
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            manifest = make_exp(
+                tmp,
+                edits=[
+                    (
+                        "start: python3 src/tls_client.py --port",
+                        "start: python3 link_client.py {secrets}/client.keys --port",
+                    )
+                ],
+                files={"link_client.py": symlink_script},
+            )
+            out = tmp / "out"
+            res = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+            assert res.returncode == 3, (
+                f"expected BLOCKED, got {res.returncode}: {res.stdout}"
+            )
+            v_data = json.loads((out / "echo" / "verdict.json").read_text(encoding="utf-8"))
+            assert v_data["verdict"] == "BLOCKED"
+            assert "symlink" in v_data["reason"]
+            assert "client.keys" in v_data["reason"]
+    
+        # 2. env.json records decrypt executable absolute path and sha256; modifying binary changes sha256
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            wrapper = tmp / "dec_wrap.sh"
+            wrapper.write_text('#!/bin/sh\nexec editcap "$@"\n', encoding="utf-8")
+            wrapper.chmod(0o755)
+            manifest = make_exp(
+                tmp,
+                edits=[("command: editcap -F", f"command: {wrapper} -F")],
+            )
+            res1 = wire("run", str(manifest), "--cell", "echo", "--out", str(tmp / "out1"))
+            assert res1.returncode == 0, f"run 1 failed: {res1.stderr}"
+            env1 = json.loads(
+                (tmp / "out1" / "echo" / "env.json").read_text(encoding="utf-8")
+            )
+            assert env1["decrypt"]["executable"] == str(wrapper)
+            sha1 = env1["decrypt"]["sha256"]
+>           assert len(sha1) == 64
+                   ^^^^^^^^^
+E           TypeError: object of type 'NoneType' has no len()
+
+acceptance/M09/test_m09.py:587: TypeError
+=========================== short test summary info ============================
+FAILED acceptance/M09/test_m09.py::test_ac8_secret_symlink_env_json_and_bundle_integrity
+1 failed in 4.11s
+
+# exit: 1

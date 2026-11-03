@@ -1,0 +1,125 @@
+milestone: M09
+attempt: 1
+commit: 49adba644d071c1795cb800c136cf196af57d240
+criteria_version: 680a0eb1f0ff1fa94aae4bfcb780e246083e65c1cd50ca4d20a3876afe1eb73d
+verifier:
+  role: verifier
+  family: google
+  model: gemini-3.8-flash-high
+verdict: PASS
+
+acceptance:
+  AC1:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac1_tls_example_passes_and_bundle_artifacts
+    run: runs/M09/01/49adba644d07/acc.log
+  AC2:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac2_peer_missing_or_empty_secret_yields_blocked
+    run: runs/M09/01/49adba644d07/acc.log
+  AC3:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac3_decrypt_step_failure_yields_fail_keeping_capture
+    run: runs/M09/01/49adba644d07/acc.log
+  AC4:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac4_observes_decrypted_negatives_and_scratch_rerun
+    run: runs/M09/01/49adba644d07/acc.log
+  AC5:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac5_observes_capture_asserts_encrypted_negative
+    run: runs/M09/01/49adba644d07/acc.log
+  AC6:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac6_manifest_validation_rejects_invalid_configs
+    run: runs/M09/01/49adba644d07/acc.log
+  AC7:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac7_peer_env_and_secrets_expansion
+    run: runs/M09/01/49adba644d07/acc.log
+  AC8:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac8_secret_symlink_env_json_and_bundle_integrity
+    run: runs/M09/01/49adba644d07/acc.log
+  AC9:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac9_m08_compatibility_and_unsecured_bundle
+    run: runs/M09/01/49adba644d07/acc.log
+  AC10:
+    result: PASS
+    tests:
+      - acceptance/M09/test_m09.py::test_ac10_no_protocol_knowledge_in_wire
+    run: runs/M09/01/49adba644d07/acc.log
+
+validity:
+  AC1:
+    fails_on: base
+    run: runs/M09/01/49adba644d07/validity-AC1.log
+  AC2:
+    fails_on: mutant:ac2_accept_bad_secrets
+    run: runs/M09/01/49adba644d07/validity-AC2.log
+  AC3:
+    fails_on: mutant:ac3_ignore_decrypt_failure
+    run: runs/M09/01/49adba644d07/validity-AC3.log
+  AC4:
+    fails_on: mutant:ac4_skip_scratch_decrypt
+    run: runs/M09/01/49adba644d07/validity-AC4.log
+  AC5:
+    fails_on: mutant:ac5_skip_asserts_encrypted
+    run: runs/M09/01/49adba644d07/validity-AC5.log
+  AC6:
+    fails_on: mutant:ac6_accept_traversal_secret
+    run: runs/M09/01/49adba644d07/validity-AC6.log
+  AC7:
+    fails_on: base
+    run: runs/M09/01/49adba644d07/validity-AC7.log
+  AC8:
+    fails_on: mutant:ac8_skip_decrypt_env_hash
+    run: runs/M09/01/49adba644d07/validity-AC8.log
+  AC9:
+    fails_on: mutant:ac9_m08_bundles
+    run: runs/M09/01/49adba644d07/validity-AC9.log
+  AC10:
+    fails_on: mutant:ac10_protocol_leak
+    run: runs/M09/01/49adba644d07/validity-AC10.log
+
+findings: []
+
+claim_audit:
+  - claim: "AC1: In the TLS example, wire run exits 0 with verdict PASS, writing capture.pcap without cleartext payload, secrets/ with non-empty key logs, capture-decrypted.pcapng displaying payload under tshark, decrypt.log, SHA256SUMS, and contains_secrets: true"
+    holds: true
+  - claim: "AC2: A peer declaring a secret file but not writing it (or writing it empty) yields BLOCKED (exit 3) naming the file; decrypt and checkers do not run"
+    holds: true
+  - claim: "AC3: Decrypt command exiting non-zero or leaving {decrypted} missing/empty yields FAIL (exit 1) with 'decrypt failed'; capture.pcap is kept and listed in SHA256SUMS"
+    holds: true
+  - claim: "AC4: observes_decrypted checker negatives re-run decrypt into scratch; mutant checkers only checking file existence or key file fail with reason 'checker accepts negative'"
+    holds: true
+  - claim: "AC5: observes_capture checker rejects asserts: encrypted negative; raw checker accepting cleartext TCP makes cell FAIL"
+    holds: true
+  - claim: "AC6: Manifest validation exits 2 before env check, build, start or capture for all 19 invalid/malformed configuration cases"
+    holds: true
+  - claim: "AC7: Peer env variables present in peer process with {secrets} expanded, absent from other peers; {secrets} exists before peer build/start"
+    holds: true
+  - claim: "AC8: Symlinked secret yields BLOCKED; env.json records decrypt executable absolute path and sha256; verify-bundle checks integrity"
+    holds: true
+  - claim: "AC9: M08 acceptance suite passes unchanged; un-secured bundles contain no secrets, decrypted pcapng, or decrypt.log, and contains_secrets is false"
+    holds: true
+  - claim: "AC10: wire/ contains no protocol knowledge for this feature (zero references to editcap, tshark, SSLKEYLOGFILE, tls, dtls, quic, oscore)"
+    holds: true
+
+notes:
+  validity_rationale:
+    AC1: "Kept 'fails_on: base' because AC1 tests the complete end-to-end integration of all M09 secured runner features and example assets (TLS example, secrets, decrypt step, decrypted capture generation). At base commit c74bd65407b8, none of these features existed."
+    AC7: "Kept 'fails_on: base' because AC7 tests peer process environment expansion of {secrets} and pre-build directory creation, which are wholly absent at base commit c74bd65407b8."
+    AC4_mutants: "Both holes identified in the review were falsified: mutant ac4_skip_scratch_decrypt (skipping scratch decrypt re-run of {secrets}/<file> negatives) was logged at runs/M09/01/49adba644d07/validity-AC4.log; mutant ac4_skip_decrypted_negative (skipping {decrypted} replacement negatives) was additionally logged at runs/M09/01/49adba644d07/validity-AC4-decrypted.log."
+
+required_fixes: []

@@ -1,0 +1,44 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac3_verify_bundle_tamper_detection
+# commit: 7561831c4cf5b4827b09b7ba3aa0a86d4054c347 + mutant:ac3_skip_hash_verify
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________________ test_ac3_verify_bundle_tamper_detection ____________________
+
+    def test_ac3_verify_bundle_tamper_detection() -> None:
+        """AC3: verify-bundle exits 0 on untouched bundle, exits 1 on mutation, deletion, addition, malformed sums, bad verdict."""
+        with tempfile.TemporaryDirectory() as t:
+            tmp = Path(t)
+            manifest = make_exp(tmp)
+            out = tmp / "out"
+            assert (
+                wire("run", str(manifest), "--cell", "echo", "--out", str(out)).returncode
+                == 0
+            )
+            bundle = out / "echo"
+            assert wire("verify-bundle", str(bundle)).returncode == 0
+    
+            def mutate_bundle(mutator) -> int:
+                copy = tmp / f"copy_{time.monotonic_ns()}"
+                shutil.copytree(bundle, copy)
+                try:
+                    mutator(copy)
+                    return wire("verify-bundle", str(copy)).returncode
+                finally:
+                    shutil.rmtree(copy, ignore_errors=True)
+    
+            # 1 byte flipped in capture.pcap
+            def flip_byte(c: Path) -> None:
+                raw = bytearray((c / "capture.pcap").read_bytes())
+                raw[-1] ^= 0x01
+                (c / "capture.pcap").write_bytes(bytes(raw))
+    
+>           assert mutate_bundle(flip_byte) == 1
+E           assert 0 == 1
+E            +  where 0 = <function test_ac3_verify_bundle_tamper_detection.<locals>.mutate_bundle at 0x110a1d080>(<function test_ac3_verify_bundle_tamper_detection.<locals>.flip_byte at 0x110a1f4c0>)
+
+acceptance/M08/test_m08.py:314: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac3_verify_bundle_tamper_detection - ...
+1 failed in 1.74s
+
+# exit: 1

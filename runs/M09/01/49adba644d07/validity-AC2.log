@@ -1,0 +1,33 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M09/test_m09.py::test_ac2_peer_missing_or_empty_secret_yields_blocked
+# commit: 2aaa60c5d19b820ffb2305d399567c9b97353984 + mutant:ac2_accept_bad_secrets
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_ac2_peer_missing_or_empty_secret_yields_blocked _____________
+
+    def test_ac2_peer_missing_or_empty_secret_yields_blocked() -> None:
+        """AC2: A peer declaring a secret but not writing it (or writing it empty) yields BLOCKED (exit 3)."""
+        need_tools()
+        # Case 1: secret file not written
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            manifest = make_exp(
+                tmp,
+                edits=[(CLIENT_ENV, 'env: {SSLKEYLOGFILE: "{secrets}/unwritten.keys"}')],
+            )
+            out = tmp / "out"
+            res = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+>           assert res.returncode == 3, (
+                f"expected BLOCKED (3), got {res.returncode}: {res.stdout}"
+            )
+E           AssertionError: expected BLOCKED (3), got 1: FAIL: echo: decrypt failed
+E             bundle: <tmp>
+E             
+E           assert 1 == 3
+E            +  where 1 = CompletedProcess(args=['/opt/anaconda3/bin/python3', '-m', 'wire', 'run', '/var/folders/31/7x197zc125z0cvx2x2kqftxm000...o: decrypt failed\nbundle: <tmp>', stderr='').returncode
+
+acceptance/M09/test_m09.py:183: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M09/test_m09.py::test_ac2_peer_missing_or_empty_secret_yields_blocked
+1 failed in 2.41s
+
+# exit: 1

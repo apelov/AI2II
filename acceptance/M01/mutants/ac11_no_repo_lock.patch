@@ -1,0 +1,19 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 5827719..ba4a57e 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -2103,13 +2103,7 @@ def _require_main_branch() -> str | None:
+ 
+ @contextlib.contextmanager
+ def _repo_lock() -> Any:
+-    common = (_repo_root() / _git("rev-parse", "--git-common-dir").strip()).resolve()
+-    with open(common / "ai2ii-orch.lock", "a", encoding="utf-8") as lf:
+-        fcntl.flock(lf, fcntl.LOCK_EX)
+-        try:
+-            yield
+-        finally:
+-            fcntl.flock(lf, fcntl.LOCK_UN)
++    yield
+ 
+ 
+ def governed(fn: Any) -> Any:

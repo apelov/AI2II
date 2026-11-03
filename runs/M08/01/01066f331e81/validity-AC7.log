@@ -1,0 +1,44 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac7_checkers_failing_or_accepting_negatives_yield_fail
+# commit: 1182a5d65f8c93e80eff7410d4ab0d8733f48bfa + mutant:ac7_skip_accepted_negatives_check
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_ac7_checkers_failing_or_accepting_negatives_yield_fail __________
+
+    def test_ac7_checkers_failing_or_accepting_negatives_yield_fail() -> None:
+        """AC7: Non-zero checker exits yield FAIL; checker accepting negative yields FAIL; cell B rejects cell A traffic."""
+        with tempfile.TemporaryDirectory() as t:
+            tmp = Path(t)
+    
+            # 1. Checker exiting non-zero turns cell into FAIL with reason naming that checker
+            m_fail = make_exp(
+                tmp / "exp_fail",
+                edits=[("check_vector.py --port", "fail_vector.py --port")],
+                files={"fail_vector.py": "import sys\nsys.exit(2)\n"},
+            )
+            out_fail = tmp / "out_fail"
+            r_fail = wire("run", str(m_fail), "--cell", "echo", "--out", str(out_fail))
+            assert r_fail.returncode == 1
+            v_fail = verdict_of(out_fail)
+            assert v_fail["verdict"] == "FAIL"
+            assert "vector" in v_fail["reason"]
+    
+            # 2. Always-pass observes_capture checker substituted and unrelated traffic: wire run alone yields FAIL naming checker
+            m_accept = make_exp(
+                tmp / "exp_accept",
+                edits=[("check_capture.py --port", "always_pass.py --port")],
+                files={"always_pass.py": "import sys\nsys.exit(0)\n"},
+            )
+            out_accept = tmp / "out_accept"
+            r_accept = wire(
+                "run", str(m_accept), "--cell", "echo", "--out", str(out_accept)
+            )
+>           assert r_accept.returncode == 1
+E           AssertionError: assert 0 == 1
+E            +  where 0 = CompletedProcess(args=['/opt/anaconda3/bin/python3', '-m', 'wire', 'run', '/var/folders/31/7x197zc125z0cvx2x2kqftxm000... negatives\nbundle: <tmp>', stderr='').returncode
+
+acceptance/M08/test_m08.py:603: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac7_checkers_failing_or_accepting_negatives_yield_fail
+1 failed in 2.89s
+
+# exit: 1

@@ -1,0 +1,37 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac11_orch_interop_removed_and_no_cross_imports
+# commit: 22f75ce8f7bf8f4e6f33f8e4da2ab01ca10eef4b
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_ac11_orch_interop_removed_and_no_cross_imports ______________
+
+    def test_ac11_orch_interop_removed_and_no_cross_imports() -> None:
+        """AC11: ./orch interop exits 2 (usage error); AST scan verifies zero imports between wire/ and orchestrator.py."""
+        # 1. orch interop exits 2
+        r = subprocess.run(
+            [
+                sys.executable,
+                str(REPO_ROOT / "orchestrator.py"),
+                "interop",
+                "M08",
+                "dummy_path",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+            env=ENV,
+        )
+>       assert r.returncode == 2, (
+            f"expected exit 2 for orch interop, got {r.returncode}: {r.stdout}\n{r.stderr}"
+        )
+E       AssertionError: expected exit 2 for orch interop, got 1: ERROR: Implementation directories do not exist: ['<tmp>']
+E         
+E         
+E       assert 1 == 2
+E        +  where 1 = CompletedProcess(args=['/opt/anaconda3/bin/python3', '<tmp> do not exist: ['<tmp>']\n", stderr='').returncode
+
+acceptance/M08/test_m08.py:934: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac11_orch_interop_removed_and_no_cross_imports
+1 failed in 0.13s
+
+# exit: 1

@@ -1,0 +1,74 @@
+id: M02
+title: Agent dispatch and git worktree isolation
+objective: >
+  Automate role dispatch on top of M01's lifecycle: start the attempt (start-build / start-verify),
+  render the role prompt from AGENTS.md, run the configured agent confined to its attempt worktree,
+  fall back to the next candidate on failure, and leave the attempt ready for finish-build /
+  finish-verify. Dispatch copies nothing into main: attempt records are read from the attempt branch
+  (DESIGN.md 24.3, governing vs subject orchestrator, rule 1).
+depends_on: [M01]
+inputs: [agents.local.yaml, workflow.yaml roles and ownership, AGENTS.md, DESIGN.md 24.3, reviews/milestones-04.md]
+deliverables:
+  - "./orch dispatch <id> builder|verifier: calls start-build / start-verify, renders the prompt, runs the agent"
+  - "Per-candidate reset of the attempt worktree to the recorded base, and process-group cleanup"
+  - "Attempt metadata (agent, family, model, prompt version, result, commit, duration) under milestones/<id>/attempts/NN/ in main, committed by the orchestrator"
+  - "Provider fallback: next configured candidate for the same role on non-zero exit, quota or timeout"
+  - "macOS Seatbelt confinement of the agent process, always on for dispatch"
+  - "agents.local.yaml: per agent, the extra state directories its CLI must write (e.g. ~/.claude, ~/.codex)"
+acceptance:
+  AC1: >
+    Builder dispatch from READY or REWORK performs exactly M01's start-build: afterwards state.yaml
+    records the attempt with the base, branch m/<id>/a<NN>-build and worktree that a subsequent
+    finish-build uses unchanged. Verifier dispatch likewise performs start-verify from BUILT
+    (branch m/<id>/a<NN>-verify). A test runs a successful dispatch followed by the matching
+    finish command, which succeeds.
+  AC2: >
+    Dispatch writes nothing into main's working tree except the orchestrator's own commits of
+    state.yaml, attempt metadata and runs/ logs. In particular build.md, verification.yaml,
+    acceptance/<id>/** and source files changed by the agent (including orchestrator.py) leave
+    main byte-identical; they stay on the attempt branch.
+  AC3: >
+    If the agent exits 0 but the required record (build.md for a builder, verification.yaml for a
+    verifier) is not committed on the attempt branch, dispatch exits non-zero, records result
+    "no-record", and does not report success. Tested for both roles with an agent that exits 0 and
+    writes nothing.
+  AC4: >
+    The rendered prompt contains no unresolved placeholder, names the absolute worktree path, the
+    full base commit and the full criteria_version, and every orchestrator command it contains
+    parses with the ./orch argument parser and invokes main's ./orch by absolute path.
+  AC5: >
+    After every candidate exits, successful or not, its whole process group is terminated before
+    dispatch inspects the branch. When a candidate fails (non-zero exit, timeout, or no record), the
+    attempt worktree is also reset to the recorded base (no commits, no untracked
+    files) before the next candidate starts. A test where the first candidate commits a marker file
+    and leaves a background child that keeps writing shows the second candidate's worktree free of
+    the marker and no write after dispatch returns. A test where a successful candidate (exit 0, record
+    committed) leaves a delayed writer shows no later write and a clean worktree after dispatch returns.
+  AC6: >
+    Each failed candidate is recorded with result failure | timeout | no-record. With no candidate
+    configured for the role, dispatch exits non-zero before start-build / start-verify and
+    state.yaml is unchanged. When every candidate fails, dispatch exits non-zero, the milestone stays
+    in BUILDING (or VERIFYING) with a history entry naming each failure, and the worktree is at base.
+  AC7: >
+    Attempt metadata records agent, family, model, prompt version, result, commit and duration for
+    every candidate tried, and is committed to main by the orchestrator. After a fallback, the
+    attempt's builder (or verifier) identity in state.yaml (agent, family, model, session) is the
+    candidate whose commit and record were retained; failed candidates appear only in metadata and
+    history. A test with two candidates of different families and sessions, the first failing, followed
+    by the finish command, shows state.yaml naming the second, and finish-verify's family-diversity check
+    using it.
+  AC8: >
+    The agent always runs under Seatbelt. Its writes are permitted only in its attempt worktree, the
+    git metadata needed to commit there (objects, refs, logs, and that worktree's admin directory
+    under the common .git), a per-attempt temporary directory exported as TMPDIR, and the state
+    directories declared for that agent in agents.local.yaml. A write into main's working tree, into
+    .git/hooks or .git/config, and into an unrelated path under /private/tmp each fail, and main is
+    unchanged.
+  AC9: >
+    Two concurrent builder dispatches for different milestones use separate worktrees and leave both
+    state.yaml files valid.
+  AC10: >
+    Dispatch refuses (exit non-zero, no worktree, state.yaml unchanged) when the milestone status does
+    not allow the role: builder only from READY or REWORK, verifier only from BUILT.
+out_of_scope: [TUI integration, global dashboard, budget enforcement (BASELINE.md OD5), STALE re-verification]
+size_hint: M

@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 5827719..5cf972d 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -2347,7 +2347,7 @@ def _run_logged(cmd: list[str], cwd: Path, log: Path, commit: str) -> int:
+     env = {k: v for k, v in os.environ.items() if not k.startswith("AI2II_")}
+     env["PYTHONDONTWRITEBYTECODE"] = "1"
+     with open(log, "w", encoding="utf-8") as f:
+-        f.write(f"# command: {shlex.join(cmd)}\n# commit: {commit}\n")
++        f.write(f"# commit: {commit}\n")
+         f.flush()
+         try:
+             rc, _, _ = run_process_with_group_timeout(cmd, cwd, 600, env, f)

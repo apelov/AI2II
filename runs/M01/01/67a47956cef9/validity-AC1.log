@@ -1,0 +1,27 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01/test_m01.py::test_ac1_builder_ownership_rejection
+# commit: 67a47956cef9548e56d82848be8fbfeae93b22de
+F
+=== FAIL: acceptance/M01/test_m01.py::test_ac1_builder_ownership_rejection ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 236, in wrapper
+    fn(r)
+  File "<tmp>", line 257, in test_ac1_builder_ownership_rejection
+    repo.approve("M01")
+  File "<tmp>", line 132, in approve
+    self.ok("review", m, f"reviews/{m}.md")
+  File "<tmp>", line 104, in ok
+    assert rc == 0, f"orch {args} -> {rc}\n{out}\n{err}"
+           ^^^^^^^
+AssertionError: orch ('review', 'M01', 'reviews/M01.md') -> 2
+
+usage: orch [-h]
+            {status,show,init-milestone,check-ownership,run-tests,transition,invalidate,audit,dispatch,verify,escalate,approve-gate,validate,seal,reseal,goldfish,context,doctor,interop,models,improve}
+            ...
+orch: error: argument command: invalid choice: 'review' (choose from 'status', 'show', 'init-milestone', 'check-ownership', 'run-tests', 'transition', 'invalidate', 'audit', 'dispatch', 'verify', 'escalate', 'approve-gate', 'validate', 'seal', 'reseal', 'goldfish', 'context', 'doctor', 'interop', 'models', 'improve')
+
+
+1 failed
+
+# exit: 1

@@ -1,0 +1,6 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M00/test_m00.py
+# commit: 92e7ee9b9512
+..
+2 passed
+
+# exit: 0

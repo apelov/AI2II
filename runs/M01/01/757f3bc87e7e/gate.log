@@ -1,0 +1,6 @@
+# gate: manual orchestrator (24.3)
+# commit: 757f3bc87e7e363ee1888b0b96ec7d7782d35fb7
+# base: f8fdbbca7632527f93732f1ec0a9594dfeb9118a
+clean worktree: yes
+build.md committed: yes
+ownership violations: ['acceptance/M01/test_m01_acceptance.py', 'milestones/M01/state.yaml']

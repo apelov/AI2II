@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_BIN=""
+for cand in "/opt/anaconda3/bin/python3" "/opt/homebrew/bin/python3" "/usr/local/bin/python3" "/usr/bin/python3" "$(command -v python3 2>/dev/null || true)"; do
+    if [ -n "$cand" ] && [ -x "$cand" ] && "$cand" -c "import sys" >/dev/null 2>&1; then
+        PYTHON_BIN="$cand"
+        break
+    fi
+done
+# Governing copy: always main's orchestrator.py, wherever orch is invoked (DESIGN.md 24.3).
+# The first entry of `git worktree list` is the main worktree.
+MAIN_ROOT="$(git -C "$SCRIPT_DIR" worktree list --porcelain 2>/dev/null | sed -n '1s/^worktree //p' || true)"
+TARGET="$SCRIPT_DIR/orchestrator.py"
+if [ -n "$MAIN_ROOT" ] && [ -f "$MAIN_ROOT/orchestrator.py" ]; then
+    TARGET="$MAIN_ROOT/orchestrator.py"
+fi
+AI2II_INVOKED_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+export AI2II_INVOKED_ROOT
+exec "${PYTHON_BIN:-python3}" "$TARGET" "$@"

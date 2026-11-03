@@ -1,0 +1,133 @@
+milestone: M01
+status: COMPLETE
+criteria_version: 4846a491a8c1a23c5fe97c1ddab33f679d585817b7139ed05be76c1538c6a222
+attempt: 1
+extra_attempts: 0
+attempts:
+- n: 1
+  base: 67a47956cef9548e56d82848be8fbfeae93b22de
+  branch: m/M01/a01-build-corr
+  worktree: .worktrees/M01-a01-build-corr
+  builder:
+    agent: claude-sonnet
+    family: anthropic
+    model: claude-sonnet-5-5
+    session: claude-sonnet-M01-a01-corr
+  prompt_versions:
+    builder: 1
+    verifier: 1
+  built: ebfa283626c0a8de170846b17cb123a69c901190
+  verify_branch: m/M01/a01-verify
+  verify_worktree: .worktrees/M01-a01-verify
+  verifier:
+    agent: agy
+    family: google
+    model: gemini-3.8-flash-high
+    session: agy-M01-a01-verify
+  verdict: PASS
+escalations: []
+history:
+- at: '2026-10-07T22:10:37+00:00'
+  from: DRAFT
+  to: APPROVED
+  note: 'bootstrap: human instruction to build M01 (2026-10-08); review and G1/G2
+    approval files not yet recorded'
+- at: '2026-10-07T22:10:37+00:00'
+  from: APPROVED
+  to: READY
+  note: no dependencies
+- at: '2026-10-07T22:10:37+00:00'
+  from: READY
+  to: BUILDING
+  note: attempt 01 dispatched by hand to claude-or
+- at: '2026-10-08T00:32:04+00:00'
+  from: BUILDING
+  to: BUILDING
+  note: 'run rejected at 757f3bc87e7e: ownership violations acceptance/M01/test_m01_acceptance.py,
+    milestones/M01/state.yaml (runs/M01/01/757f3bc87e7e/gate.log); builder tests exit
+    0 (build.log). Corrective re-dispatch to claude-or within attempt 01.'
+- at: '2026-10-08T04:21:06+00:00'
+  from: BUILDING
+  to: BUILDING
+  note: 'corrective run rejected at b7d0b54680a2: ownership violation milestones/M01/state.yaml
+    (runs/M01/01/b7d0b54680a2/gate.log). Builder tests exit 0 but are not hermetic:
+    running them added 3 state commits to the build branch (now 2619613), i.e. ./orch
+    commits into the invoking worktree instead of main. Two rejected runs; bound reached,
+    decision returned to human (I7).'
+- at: '2026-10-08T09:25:55+00:00'
+  from: BUILDING
+  to: BUILDING
+  note: 'human decision: retry attempt 01 with Nemotron via plain claude CLI (OpenRouter),
+    fix forward on the same branch; prompt runs/M01/01/prompt-builder-correction-2.md'
+- at: '2026-10-08T10:04:01+00:00'
+  from: BUILDING
+  to: BUILDING
+  note: 'Nemotron retry (claude CLI) incomplete: first run stopped mid-task without
+    committing; resumed session ended with a provider failure (OpenRouter stream stalled
+    120s, malformed response, exit 1). Uncommitted partial work left in .worktrees/M01-a01-build
+    (state.yaml deletion, cli.py, state.py, transitions.py). No gate run: worktree
+    not clean. Returned to human.'
+- at: '2026-11-02T18:57:51+00:00'
+  from: BUILDING
+  to: BUILDING
+  note: 'corrective builder run within attempt 01 per E012 (approvals/G3-E012.md):
+    fresh worktree .worktrees/M01-a01-build-corr at 67a47956cef9 (hand-built orchestrator
+    as base), builder claude-sonnet (anthropic) under Seatbelt; prompt runs/M01/01/prompt-builder-correction-3.md.
+    Superseded attempt record: base f8fdbbca7632, branch m/M01/a01-build, builder
+    claude-or (nvidia/nvidia/nemotron-3-ultra-550b-a55b:free); old worktree .worktrees/M01-a01-build
+    left untouched.'
+- at: '2026-11-02T19:22:45+00:00'
+  from: BUILDING
+  to: BUILDING
+  note: 'corrective run rejected at 61188176b12d: ownership PASSED, builder tests
+    FAILED in orchestrator run (runs/M01/01/61188176b12d/build-corr.log; shim import
+    path), E011 regression tests deleted (runs/M01/01/61188176b12d/gate.log). Fix-forward
+    re-dispatch to claude-sonnet on the same branch; prompt runs/M01/01/prompt-builder-correction-4.md.'
+- at: '2026-11-02T19:32:09+00:00'
+  from: BUILDING
+  to: BUILT
+  note: 'fix-forward run ebfa283626c0: clean worktree, build.md committed, ownership
+    PASSED, builder tests PASSED in orchestrator run (runs/M01/01/ebfa283626c0/build-corr2.log)'
+- at: '2026-11-02T19:32:09+00:00'
+  from: BUILT
+  to: VERIFYING
+  note: verifier codex (openai, gpt-6-sol, differs from builder family anthropic)
+    dispatched by hand in .worktrees/M01-a01-verify; prompt runs/M01/01/prompt-verifier.md
+- at: '2026-11-03T00:13:34+00:00'
+  from: VERIFYING
+  to: VERIFYING
+  note: 'codex verifier (openai) could not finish: its sandbox blocks git commits
+    in the worktree, then the OpenAI usage limit was hit; no verdict, no logs. Human
+    decision: re-dispatch verifier to agy (google, gemini-3.8-flash-high) in a fresh
+    blind session; codex''s uncommitted tests set aside, worktree reset to ebfa283.
+    Prompt runs/M01/01/prompt-verifier-agy.md'
+- at: '2026-11-03T08:32:03+00:00'
+  from: VERIFYING
+  to: VERIFYING
+  note: verifier agy (google) verdict PASS at bf7f92fe64d5; orchestrator acceptance
+    and all 11 validity re-runs confirm (runs/M01/01/bf7f92fe64d5/gate.log). Awaiting
+    human review of logs (E012 point 5) and architect sign-off on design deviations
+    before VERIFIED.
+- at: '2026-11-03T08:37:57+00:00'
+  from: VERIFYING
+  to: VERIFYING
+  note: 'human decision: verifier fix-up before VERIFIED (ruff in acceptance/M01,
+    AC11 mutant must remove the lock, AC9 must falsify restore of main); same agy
+    session, prompt runs/M01/01/prompt-verifier-fixup.md'
+- at: '2026-11-03T09:08:03+00:00'
+  from: VERIFYING
+  to: VERIFYING
+  note: verifier fix-up done at 2bad5e1b9a9a (agy google; resumed session stuck on
+    API stream, continued in fresh session a1690f37 with original prompt + fix-up);
+    orchestrator acceptance, 11 validity re-runs, AC11 repeats and verify_gate.sh
+    pass (runs/M01/01/2bad5e1b9a9a/gate.log). Awaiting human VERIFIED decision and
+    design-deviation sign-off.
+- at: '2026-11-03T10:52:38+00:00'
+  from: VERIFYING
+  to: VERIFIED
+  note: human read logs (approvals/G2-M01-VERIFIED.md, E012 point 5); design deviations
+    accepted (approvals/G1-M01-DEVIATIONS.md); verdict PASS by agy (google) at m/M01/a01-verify
+- at: '2026-11-03T10:59:05.437997Z'
+  from: VERIFIED
+  to: COMPLETE
+  note: merged m/M01/a01-verify; suites passed

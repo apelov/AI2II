@@ -1,0 +1,9 @@
+agent: test-agent
+attempt: 1
+commit: abc123
+duration_seconds: 1.0
+milestone: M01
+model: test-family
+result: success
+role: builder
+timestamp: '2026-10-14T21:59:21.969087Z'

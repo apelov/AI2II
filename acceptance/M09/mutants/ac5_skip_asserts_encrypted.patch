@@ -1,0 +1,13 @@
+diff --git a/wire/checkers.py b/wire/checkers.py
+index 5dcc0b1..208cd0d 100644
+--- a/wire/checkers.py
++++ b/wire/checkers.py
+@@ -66,6 +66,8 @@ def accepted_negatives(
+             repl != CAPTURE or m.checkers[name]["observes_decrypted"]
+         ):
+             continue
++        if neg.get("asserts") == "encrypted":
++            continue
+         with tempfile.TemporaryDirectory(prefix="wire-neg-") as tmp:
+             scratch = Path(tmp)
+             view = scratch / "inputs"

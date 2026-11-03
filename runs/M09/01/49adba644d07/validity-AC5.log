@@ -1,0 +1,27 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M09/test_m09.py::test_ac5_observes_capture_asserts_encrypted_negative
+# commit: 2aaa60c5d19b820ffb2305d399567c9b97353984 + mutant:ac5_skip_asserts_encrypted
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_ac5_observes_capture_asserts_encrypted_negative _____________
+
+    def test_ac5_observes_capture_asserts_encrypted_negative() -> None:
+        """AC5: observes_capture checker rejects asserts: encrypted; raw checker accepting it makes cell FAIL."""
+        need_tools()
+        # 1. Normal run: observes-tls checker passes and rejects cleartext.pcap
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            manifest = make_exp(tmp)
+            out = tmp / "out"
+            res = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+            assert res.returncode == 0
+            bundle = out / "echo"
+            log = (bundle / "checker-observes-tls.log").read_text(encoding="utf-8")
+>           assert "negative: negatives/cleartext.pcap replaces {capture}" in log
+E           AssertionError: assert 'negative: negatives/cleartext.pcap replaces {capture}' in 'TLS handshake and application data observed in both directions\n--- negative: negatives/unrelated.pcap replaces {capt...gative: negatives/one_direction.pcap replaces {capture}\na direction of the exchange is missing or is not TLS-framed\n'
+
+acceptance/M09/test_m09.py:337: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M09/test_m09.py::test_ac5_observes_capture_asserts_encrypted_negative
+1 failed in 2.56s
+
+# exit: 1

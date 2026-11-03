@@ -1,0 +1,23 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider tests
+# commit: 61188176b12d2a3abbeca400920b917b51e536e8
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "src/_shims/pytest.py", line 185, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "src/_shims/pytest.py", line 126, in main
+    all_tests.extend(_collect_from_file(tf))
+                     ^^^^^^^^^^^^^^^^^^^^^^
+  File "src/_shims/pytest.py", line 57, in _collect_from_file
+    module = _load_module_from_path(file_path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "src/_shims/pytest.py", line 48, in _load_module_from_path
+    spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "<tmp>", line 9, in <module>
+    from flow_repo import REAL_ROOT
+ModuleNotFoundError: No module named 'flow_repo'
+
+# exit: 1

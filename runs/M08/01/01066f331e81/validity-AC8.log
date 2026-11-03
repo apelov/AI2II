@@ -1,0 +1,81 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac8_manifest_validation_rejects_malformed_inputs
+# commit: 1182a5d65f8c93e80eff7410d4ab0d8733f48bfa + mutant:ac8_bypass_manifest_error
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_ac8_manifest_validation_rejects_malformed_inputs _____________
+
+    def test_ac8_manifest_validation_rejects_malformed_inputs() -> None:
+        """AC8: Manifest validation exits 2 before any execution for all invalid manifest conditions."""
+        validation_cases = {
+            "checker family equals peer": [
+                ("family: example-checker", "family: example-server")
+            ],
+            "missing peer family": [("family: example-client", 'family: ""')],
+            "duplicate peer": [("name: echo-client", "name: echo-server")],
+            "undefined peer": [("clients: [echo-client]", "clients: [unknown_peer]")],
+            "observes not bool": [
+                ("observes_capture: true", 'observes_capture: "not_a_bool"')
+            ],
+            "cell without observes_capture": [
+                ("checkers: [observes-echo, vector]", "checkers: [vector]")
+            ],
+            "checker with no negatives": [
+                (
+                    (
+                        "    negatives:\n"
+                        '      - {input: negatives/unrelated.pcap, replaces: "{capture}"}\n'
+                        '      - {input: negatives/no_echo.pcap, replaces: "{capture}"}'
+                    ),
+                    "    negatives: []",
+                )
+            ],
+            "observes_capture with < 2 capture negatives": [
+                (
+                    '      - {input: negatives/unrelated.pcap, replaces: "{capture}"}\n',
+                    "",
+                )
+            ],
+            "negative input does not exist": [
+                ("negatives/unrelated.pcap", "negatives/nonexistent_file.pcap")
+            ],
+            "negative replaces invalid": [
+                ("replaces: vectors/payload.bin", "replaces: vectors/wrong_name.bin")
+            ],
+            "cell with client equal to server": [
+                ("clients: [echo-client]", "clients: [echo-server]")
+            ],
+            "cell naming same client twice": [
+                ("clients: [echo-client]", "clients: [echo-client, echo-client]")
+            ],
+        }
+    
+        for name, edits in validation_cases.items():
+            with tempfile.TemporaryDirectory() as t:
+                tmp = Path(t)
+                marker = tmp / "marker_env_executed"
+                combined_edits = [
+                    *edits,
+                    (
+                        'command: python3 -c "import sys"',
+                        f"command: python3 -c \"import pathlib; pathlib.Path('{marker}').touch()\"",
+                    ),
+                ]
+                manifest = make_exp(tmp, edits=combined_edits)
+                out = tmp / "out"
+                r = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+>               assert r.returncode == 2, (
+                    f"case {name!r} expected exit 2, got {r.returncode}: {r.stdout}\n{r.stderr}"
+                )
+E               AssertionError: case 'checker family equals peer' expected exit 2, got 0: PASS: echo: all peers exited 0, capture non-empty, every checker passed and rejected its negatives
+E                 bundle: <tmp>
+E                 
+E                 
+E               assert 0 == 2
+E                +  where 0 = CompletedProcess(args=['/opt/anaconda3/bin/python3', '-m', 'wire', 'run', '/var/folders/31/7x197zc125z0cvx2x2kqftxm000...ted its negatives\nbundle: <tmp>', stderr='').returncode
+
+acceptance/M08/test_m08.py:769: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac8_manifest_validation_rejects_malformed_inputs
+1 failed in 1.61s
+
+# exit: 1

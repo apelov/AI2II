@@ -1,0 +1,6 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01/test_m01.py::TestM01Acceptance::test_ac2_path_ownership_passes_source_tree
+# commit: 67a47956cef9548e56d82848be8fbfeae93b22de
+.
+1 passed
+
+# exit: 0

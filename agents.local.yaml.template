@@ -1,0 +1,31 @@
+# Local agent configuration (NOT committed - copy to agents.local.yaml and customize)
+# Maps roles to agent commands for dispatch
+
+agents:
+  # Example configurations - replace with your actual agent CLIs
+  claude-opus:
+    family: anthropic
+    tier: high
+    command: "claude -p --model opus {prompt_file}"
+  claude-sonnet:
+    family: anthropic
+    tier: standard
+    command: "claude -p --model sonnet {prompt_file}"
+  codex:
+    family: openai
+    tier: standard
+    command: "codex exec {prompt_file}"
+  local-qwen:
+    family: local
+    tier: standard
+    command: "aider --model qwen {prompt_file}"
+  human:
+    family: human
+    tier: high
+    command: "scripts/human-task.sh {prompt_file}"
+
+assign:
+  architect: [claude-opus]
+  reviewer:  [codex]
+  builder:   [codex, claude-sonnet]
+  verifier:  [claude-sonnet, codex]

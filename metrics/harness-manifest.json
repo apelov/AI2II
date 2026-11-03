@@ -1,0 +1,79 @@
+{
+  "version": "2.0",
+  "design_hash": "57c566d5b97edaa710b08f9e48ad3f78c71440aead0ad1858575b4827efac886",
+  "policy_hash": "77e6c6e4bae3f2e2cdf7ecb857382df1c6544c79ccff49bce1ceb1a7cfffafe0",
+  "agents_hash": "cf9966ffb639e6ee38dd6d28272d43d2b79d61dc8e805a507a78bc44866191f0",
+  "gate_hash": "b967f6bf3ce1f5fa2cc435e2cfe539c6427f9f8d6855ce96117f7bd0481af3d5",
+  "milestones": {
+    "M00": {
+      "file": "milestones/M00/spec.yaml",
+      "criteria_version": "f61d1dbeb4c3135869409e2c7196ef3d9de968fefb6f902ffe0a88aa8eafdcee",
+      "digest": "a3f0bb3c2caea2fd0cf763bebd42fce20ac9c0c4ec7dd66d49ff431318c6b6ae",
+      "depends_on": []
+    },
+    "M01": {
+      "file": "milestones/M01/spec.yaml",
+      "criteria_version": "47f752a0c3612ce57a3f8b55276454ddf0886477d04b24ab58b251f88b943b85",
+      "digest": "7622b9891002b422086049dc1e5ea4cc39d7db964d98f2e1bf950c0f399492eb",
+      "depends_on": []
+    },
+    "M02": {
+      "file": "milestones/M02/spec.yaml",
+      "criteria_version": "62542b1943f000fd93b7a73bd089c588ba26d9f9acf95a43f56cc2b4c170ffe0",
+      "digest": "ae6bafea3cb239a37d8c3f0d6770fb3a1229929eb0d3e6a340d8aff3f0bc39af",
+      "depends_on": [
+        "M01"
+      ]
+    },
+    "M03": {
+      "file": "milestones/M03/spec.yaml",
+      "criteria_version": "c87cca0ecd8b74ceb8337315da83cbc7c8641c85ed2ede1d7c89b64506e699eb",
+      "digest": "7692c4fff9bf1393143c1f79c3b0554e9d3d55ac6e15152d904d54a79954cd9f",
+      "depends_on": [
+        "M01",
+        "M02"
+      ]
+    },
+    "M04": {
+      "file": "milestones/M04/spec.yaml",
+      "criteria_version": "97d6768a03166902dee7eb720b7b4ba45adb9303829a99cea77d0e7ced8ac300",
+      "digest": "24374f0e6d2bc5346d68471d59eac29295e8a8443c2c44a839b85b05f82dc5a7",
+      "depends_on": [
+        "M01",
+        "M03"
+      ]
+    },
+    "M05": {
+      "file": "milestones/M05/spec.yaml",
+      "criteria_version": "901099590ab7fa23d42c68c00cc8bf8c24831d0423a71960751a2c5bf3082639",
+      "digest": "0d74172699e4241c49905f0172f00f099388a140e2fb5489202c83bd378b3cba",
+      "depends_on": [
+        "M01",
+        "M04"
+      ]
+    },
+    "M06": {
+      "file": "milestones/M06/spec.yaml",
+      "criteria_version": "342b571314779ad4335bff1ee8ae1ea5bb892f5a80f132d7f4b51bbd32badb41",
+      "digest": "5c602b37b5055cd7d23b4badc7a6ddd3f44be50cd7b1215fd308693f7f5f654c",
+      "depends_on": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05"
+      ]
+    },
+    "M07": {
+      "file": "milestones/M07/spec.yaml",
+      "criteria_version": "74c1ff4c4b3b574172a0959e2c80108d1ed5f87629911200b119b61737f21ea3",
+      "digest": "dd7401f03057b98952fdffe8e215e5ae905377285e8ae4019814c64a7df5d0cb",
+      "depends_on": [
+        "M01",
+        "M02"
+      ]
+    }
+  },
+  "sealed_at": 1793577221.851469,
+  "generation": 1
+}

@@ -1,0 +1,19 @@
+id: M05
+title: Change control and cascading invalidation
+objective: Spec/design/code changes correctly invalidate dependent milestones
+depends_on: [M01, M04]
+inputs: [Git history, spec.yaml hashes, milestone dependencies]
+deliverables:
+  - "orchestrator.py invalidate command: detects spec.yaml, DESIGN.md, and code changes"
+  - "Automatic transition: spec change -> milestone DRAFT + new criteria_version"
+  - "DESIGN.md change -> architect lists affected milestones in commit; G3 approves; those -> DRAFT/STALE"
+  - "Code owned by COMPLETE milestone changed -> re-run its acceptance suite on main; fail -> REWORK"
+  - "Dependency of Mxx becomes STALE -> Mxx becomes STALE (cascading)"
+acceptance:
+  AC1: "Spec.yaml modification detected; milestone -> DRAFT; criteria_version updated"
+  AC2: "DESIGN.md modification -> architect lists affected; G3 approves; listed -> DRAFT/STALE"
+  AC3: "Integration test runs all COMPLETE milestones' acceptance suites on merge commit"
+  AC4: "Failing integration suite -> milestone -> REWORK with integration log as verification report"
+  AC5: "Dependency STALE propagation works transitively"
+out_of_scope: [Automated architect impact analysis, semantic diff of DESIGN.md]
+size_hint: S

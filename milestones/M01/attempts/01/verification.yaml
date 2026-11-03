@@ -1,0 +1,166 @@
+milestone: M01
+attempt: 1
+commit: ebfa283626c0a8de170846b17cb123a69c901190
+criteria_version: 4846a491a8c1a23c5fe97c1ddab33f679d585817b7139ed05be76c1538c6a222
+verifier:
+  role: verifier
+  family: google
+  model: gemini-3.8-flash-high
+verdict: PASS
+
+acceptance:
+  AC1:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac1_builder_ownership_rejection
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC2:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac2_finish_build_preconditions_and_success
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC3:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac3_captured_test_logs
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC4:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac4_preconditions_enforced_and_state_unchanged
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC5:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac5_finish_verify_rejects_malformed_verdicts
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC6:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac6_pass_verdict_requires_validity_and_acceptance
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC7:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac7_fail_verdict_rework_escalation_g4
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC8:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac8_spec_change_returns_draft_and_cascades_stale
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC9:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac9_integration_lifecycle_and_conflict_reversal
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC10:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac10_state_persists_across_processes_and_author_orchestrator
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+  AC11:
+    result: PASS
+    tests:
+      - acceptance/M01/test_m01.py::test_ac11_concurrent_finish_build_preserves_state
+    run: runs/M01/01/8e821a8c6f5c/acc.log
+
+validity:
+  AC1:
+    fails_on: base
+    run: runs/M01/01/67a47956cef9/validity-AC1.log
+  AC2:
+    fails_on: mutant:ac2_ignore_builder_tests
+    run: runs/M01/01/beb526e10662/validity-AC2.log
+  AC3:
+    fails_on: mutant:ac3_omit_log_header
+    run: runs/M01/01/beb526e10662/validity-AC3.log
+  AC4:
+    fails_on: mutant:ac4_bypass_precondition
+    run: runs/M01/01/beb526e10662/validity-AC4.log
+  AC5:
+    fails_on: mutant:ac5_skip_verdict_validation
+    run: runs/M01/01/beb526e10662/validity-AC5.log
+  AC6:
+    fails_on: mutant:ac6_skip_validity_execution
+    run: runs/M01/01/beb526e10662/validity-AC6.log
+  AC7:
+    fails_on: mutant:ac7_allow_resolve_without_g4
+    run: runs/M01/01/beb526e10662/validity-AC7.log
+  AC8:
+    fails_on: mutant:ac8_no_cascade_stale
+    run: runs/M01/01/beb526e10662/validity-AC8.log
+  AC9:
+    fails_on: mutant:ac9_no_restore
+    run: runs/M01/01/8e821a8c6f5c/validity-AC9.log
+  AC10:
+    fails_on: mutant:ac10_wrong_commit_author
+    run: runs/M01/01/da754338294a/validity-AC10.log
+  AC11:
+    fails_on: mutant:ac11_no_repo_lock
+    run: runs/M01/01/8e821a8c6f5c/validity-AC11.log
+
+findings: []
+
+claim_audit:
+  - claim: "AC1 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "Ownership rules strictly reject builder commits modifying protected files including acceptance/**, milestones/**/spec.yaml, milestones/**/state.yaml."
+  - claim: "AC2 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "finish-build transitions to BUILT only when worktree is clean, build.md committed, and orchestrator builder test execution passes; fails on builder test failure."
+  - claim: "AC3 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "Test runs write structured logs under runs/<id>/<attempt>/<sha12>/<name>.log recording command, commit sha/label, and exit status."
+  - claim: "AC4 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "Preconditions are rigorously verified; failing preconditions exit 1 with reason on stderr and leave state.yaml byte-identical."
+  - claim: "AC5 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "finish-verify parses and validates verification.yaml; rejects missing criteria, mismatched commit or criteria_version, nonexistent run logs, or PASS criteria lacking validity."
+  - claim: "AC6 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "finish-verify re-runs acceptance suite and all cited validity cases in isolated checkouts; requires acceptance pass and all validity cases to fail."
+  - claim: "AC7 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "FAIL verdict yields REWORK under max_attempts and ESCALATED with an escalations/ENNN.md file at max_attempts; resolution refused without committed G4 approval."
+  - claim: "AC8 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "Spec modifications return approved milestones to DRAFT and clear criteria_version; invalidating COMPLETE milestones cascades STALE to all COMPLETE dependents."
+  - claim: "AC9 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "integrate merges VERIFIED milestone into main and runs all relevant suites on the merge commit; on suite or merge failure main is restored to pre-merge commit and milestone moves to REWORK. Falsified under mutant ac9_no_restore."
+  - claim: "AC10 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "State is persisted atomically to disk and committed to git branch main with author 'orchestrator <orchestrator@ai2ii.invalid>'; status --json reproduces state faithfully across processes."
+  - claim: "AC11 satisfied"
+    holds: true
+    evidence: runs/M01/01/8e821a8c6f5c/acc.log
+    analysis: "Concurrent finish-build commands across worktrees serialise under repository-wide flock in common git dir without index collision or state corruption. Falsified under mutant ac11_no_repo_lock."
+  - claim: "Design deviations: removal of audit, escalate, transition, verify commands"
+    holds: true
+    note: "audit explicitly out of scope in M01 spec line 89-92; escalate replaced by approved finish-verify escalation (AC7); transition and verify replaced by approved lifecycle commands. Design deviations require architect sign-off."
+  - claim: "Tests pass under stdlib shim and real pytest"
+    holds: true
+    evidence: runs/M01/01/ebfa283626c0/build-corr2.log
+  - claim: "E011 regression coverage restored"
+    holds: true
+    evidence: runs/M01/01/ebfa283626c0/gate.log
+  - claim: "Could not verify items in build.md"
+    holds: true
+    analysis: "Builder noted tests were run in temporary repos, scripts/verify_gate.sh not run, and unexercised commands (dispatch, seal, etc.). All verified: acceptance test suite runs hermetically in temporary repositories; verify_gate.sh dependencies and linting now pass with ruff clean; dispatch is out of scope per spec."
+  - claim: "Known limitations in build.md"
+    holds: true
+    analysis: "Limitations noted in build.md (STALE->VERIFYING requires DRAFT; dispatch legacy state; rework starts from previous attempt's branch) align with DESIGN.md 24.3-24.7 and spec.yaml requirements."
+
+required_fixes: []

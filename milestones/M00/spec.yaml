@@ -1,0 +1,12 @@
+id: M00
+title: Dummy milestone for infrastructure testing
+objective: Validate orchestrator infrastructure end-to-end with a trivial milestone
+depends_on: []
+inputs: []
+deliverables:
+  - touch file in source tree
+acceptance:
+  AC1: A file named M00_DONE exists in the source tree
+  AC2: The file contains the text "M00 complete"
+out_of_scope: [any real functionality]
+size_hint: S

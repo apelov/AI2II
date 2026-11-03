@@ -1,0 +1,15 @@
+diff --git a/wire/run.py b/wire/run.py
+index 41101fb..961c900 100644
+--- a/wire/run.py
++++ b/wire/run.py
+@@ -116,9 +116,7 @@ class _Cell:
+                 "experiment directory has uncommitted or untracked changes",
+             )
+ 
+-        self.env["checker_inputs"] = checkers.stage_inputs(
+-            m, self.cell["checkers"], self.bundle / "inputs"
+-        )
++        self.env["checker_inputs"] = {}
+ 
+         for name in self.peer_names:
+             p = m.peers[name]

@@ -1,0 +1,123 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M09/test_m09.py::test_ac6_manifest_validation_rejects_invalid_configs
+# commit: 2aaa60c5d19b820ffb2305d399567c9b97353984 + mutant:ac6_accept_traversal_secret
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_ac6_manifest_validation_rejects_invalid_configs _____________
+
+    def test_ac6_manifest_validation_rejects_invalid_configs() -> None:
+        """AC6: Manifest validation exits 2 before any env check, build, start or capture on malformed configurations."""
+        cases = {
+            "cell lacks observes_decrypted checker": (
+                [
+                    (
+                        "checkers: [observes-tls, decrypted-payload]",
+                        "checkers: [observes-tls]",
+                    )
+                ],
+                "observes_decrypted",
+            ),
+            "observes_decrypted lacks secret negative": (
+                [(SECRET_NEG, "")],
+                "observes_decrypted checker needs",
+            ),
+            "observes_decrypted lacks decrypted negative": (
+                [(DECRYPTED_NEG, "")],
+                "observes_decrypted checker needs",
+            ),
+            "negative replaces undeclared secret": (
+                [
+                    (
+                        'replaces: "{secrets}/client.keys"}',
+                        'replaces: "{secrets}/unseen.keys"}',
+                    )
+                ],
+                "undeclared secret",
+            ),
+            "secret name path traversal": (
+                [("secrets: [client.keys]", "secrets: [../capture.pcap]")],
+                "invalid secret name",
+            ),
+            "secret name absolute": (
+                [("secrets: [client.keys]", "secrets: [/var/tmp/key]")],
+                "invalid secret name",
+            ),
+            "secret name with path separator": (
+                [("secrets: [client.keys]", "secrets: [sub/key]")],
+                "invalid secret name",
+            ),
+            "secret name is dot": (
+                [("secrets: [client.keys]", 'secrets: ["."]')],
+                "invalid secret name",
+            ),
+            "secret name is dotdot": (
+                [("secrets: [client.keys]", 'secrets: [".."]')],
+                "invalid secret name",
+            ),
+            "secret name invalid chars": (
+                [("secrets: [client.keys]", 'secrets: ["key file"]')],
+                "invalid secret name",
+            ),
+            "secret declared twice across peers": (
+                [("secrets: [client.keys]", "secrets: [server.keys]")],
+                "declared twice",
+            ),
+            "observes_decrypted is not boolean": (
+                [("observes_decrypted: true", 'observes_decrypted: "yes"')],
+                "boolean",
+            ),
+            "decrypt present but empty mapping": (
+                [(DECRYPT_BLOCK, "decrypt: {}\n")],
+                "decrypt",
+            ),
+            "decrypt command is empty string": (
+                [(DECRYPT_BLOCK, 'decrypt:\n  command: ""\n')],
+                "decrypt",
+            ),
+            "observes_capture checker has no asserts: encrypted negative": (
+                [(", asserts: encrypted", "")],
+                "asserts: encrypted",
+            ),
+            "asserts has value other than encrypted": (
+                [("asserts: encrypted", "asserts: plaintext")],
+                "asserts",
+            ),
+            "decrypted used without experiment decrypt": (
+                [(DECRYPT_BLOCK, "")],
+                "no decrypt",
+            ),
+            "peer env is not a mapping": (
+                [(SERVER_ENV, "env: [VAR]")],
+                "mapping of strings",
+            ),
+            "peer env values are not strings": (
+                [(SERVER_ENV, "env: {PORT: 47443}")],
+                "mapping of strings",
+            ),
+        }
+    
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            for name, (edits, needle) in cases.items():
+                case_dir = tmp / f"case_{abs(hash(name))}"
+                case_dir.mkdir()
+                manifest = make_exp(case_dir, edits=edits)
+                out = case_dir / "out"
+                res = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+                assert res.returncode == 2, (
+                    f"case {name} expected exit 2, got {res.returncode}: {res.stderr}\n{res.stdout}"
+                )
+>               assert needle in res.stderr, (
+                    f"case {name} expected {needle!r} in stderr, got: {res.stderr}"
+                )
+E               AssertionError: case secret name path traversal expected 'invalid secret name' in stderr, got: wire: error: checker decrypted-payload: negative replaces undeclared secret: client.keys
+E                 checker decrypted-payload: an observes_decrypted checker needs a negative replacing a {secrets}/<file> and one replacing {decrypted}
+E                 
+E               assert 'invalid secret name' in 'wire: error: checker decrypted-payload: negative replaces undeclared secret: client.keys\nchecker decrypted-payload: an observes_decrypted checker needs a negative replacing a {secrets}/<file> and one replacing {decrypted}\n'
+E                +  where 'wire: error: checker decrypted-payload: negative replaces undeclared secret: client.keys\nchecker decrypted-payload: an observes_decrypted checker needs a negative replacing a {secrets}/<file> and one replacing {decrypted}\n' = CompletedProcess(args=['/opt/anaconda3/bin/python3', '-m', 'wire', 'run', '/var/folders/31/7x197zc125z0cvx2x2kqftxm000...-payload: an observes_decrypted checker needs a negative replacing a {secrets}/<file> and one replacing {decrypted}\n').stderr
+
+acceptance/M09/test_m09.py:475: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M09/test_m09.py::test_ac6_manifest_validation_rejects_invalid_configs
+1 failed in 0.90s
+
+# exit: 1

@@ -1,0 +1,63 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01
+# commit: bf7f92fe64d592c9d36236a8153edd2b835c5170
+..FFFFFF
+=== FAIL: acceptance/M01/test_m01.py::TestM01Acceptance::test_ac3_run_tests_captures_logs ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 95, in test_ac3_run_tests_captures_logs
+    assert rc == 0, f"M00 acceptance failed: {out}"
+           ^^^^^^^
+AssertionError: M00 acceptance failed: 
+
+=== FAIL: acceptance/M01/test_m01.py::TestM01Acceptance::test_ac4_transition_enforces_preconditions ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 118, in test_ac4_transition_enforces_preconditions
+    assert "Invalid transition" in out
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+=== FAIL: acceptance/M01/test_m01.py::TestM01Acceptance::test_ac5_invalidate_marks_stale ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 139, in test_ac5_invalidate_marks_stale
+    spec92 = orch.load_spec("M92")
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "<tmp>", line 1078, in load_spec
+    with open(spec_file, encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '<tmp>'
+
+=== FAIL: acceptance/M01/test_m01.py::TestM01Acceptance::test_ac6_max_attempts_blocks_dispatch ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 169, in test_ac6_max_attempts_blocks_dispatch
+    assert "max attempts" in out.lower()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+=== FAIL: acceptance/M01/test_m01.py::TestM01Acceptance::test_ac7_manual_orchestrator_drives_m00 ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 186, in test_ac7_manual_orchestrator_drives_m00
+    orch.create_mutant(
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: module 'orchestrator' has no attribute 'create_mutant'
+
+=== FAIL: acceptance/M01/test_m01.py::TestM01Validity::test_validity_ac1_fails_on_mutant ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 267, in test_validity_ac1_fails_on_mutant
+    orch.create_mutant(
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: module 'orchestrator' has no attribute 'create_mutant'
+
+6 failed, 2 passed
+
+# exit: 1

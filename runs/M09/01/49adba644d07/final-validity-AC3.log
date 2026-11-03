@@ -1,0 +1,45 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M09/test_m09.py::test_ac3_decrypt_step_failure_yields_fail_keeping_capture
+# commit: a32516cc1d3ccc696ab94f9f1da31ff63236a2a4 + mutant:ac3_ignore_decrypt_failure
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_ac3_decrypt_step_failure_yields_fail_keeping_capture ___________
+
+    def test_ac3_decrypt_step_failure_yields_fail_keeping_capture() -> None:
+        """AC3: Decrypt command exiting non-zero or leaving {decrypted} missing/empty yields FAIL (exit 1)."""
+        need_tools()
+        failures = (
+            ('python3 -c "import sys; sys.exit(1)"', "non-zero exit"),
+            ('python3 -c "pass"', "missing output"),
+            (
+                "python3 -c \"import sys; open(sys.argv[1], 'w').close()\" {decrypted}",
+                "zero bytes output",
+            ),
+        )
+        for cmd, desc in failures:
+            with tempfile.TemporaryDirectory() as td:
+                tmp = Path(td)
+                manifest = make_exp(
+                    tmp,
+                    edits=[(DECRYPT_BLOCK.split("command: ")[1].strip(), cmd)],
+                )
+                out = tmp / "out"
+                res = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+                assert res.returncode == 1, (
+                    f"expected FAIL (1) for {desc}, got {res.returncode}: {res.stdout}"
+                )
+                v_data = json.loads(
+                    (out / "echo" / "verdict.json").read_text(encoding="utf-8")
+                )
+                assert v_data["verdict"] == "FAIL"
+>               assert v_data["reason"] == "decrypt failed"
+E               AssertionError: assert 'checker fail...ypted-payload' == 'decrypt failed'
+E                 
+E                 - decrypt failed
+E                 + checker failed: decrypted-payload
+
+acceptance/M09/test_m09.py:250: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M09/test_m09.py::test_ac3_decrypt_step_failure_yields_fail_keeping_capture
+1 failed in 2.30s
+
+# exit: 1

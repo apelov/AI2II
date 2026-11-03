@@ -1,0 +1,20 @@
+status: READY
+criteria_version: 9e51bba8b5c9e4b32e44346908fdfc1d53f6c8b16daefdec520ed92f27b291de
+attempt: 0
+attempts: []
+escalations: []
+history:
+- at: '2026-11-03T11:02:23.876893Z'
+  from: DRAFT
+  to: REVIEWED
+  note: reviewed by reviews/milestones-07.md
+- at: '2026-11-03T11:05:13.256895Z'
+  from: REVIEWED
+  to: APPROVED
+  note: G2 approvals/G2-M02.md; criteria_version 9e51bba8b5c9
+- at: '2026-11-03T11:05:13.688817Z'
+  from: APPROVED
+  to: READY
+  note: every dependency is COMPLETE
+reviewed_spec_hash: 9e51bba8b5c9e4b32e44346908fdfc1d53f6c8b16daefdec520ed92f27b291de
+milestone: M02

@@ -1,0 +1,18 @@
+id: M06
+title: Metrics collection and resumption drill validation
+objective: Record per-milestone metrics; prove fresh session can resume mid-milestone
+depends_on: [M01, M02, M03, M04, M05]
+inputs: [All prior milestone runs]
+deliverables:
+  - "metrics/Mxx.yaml per milestone: attempts, escalations, defects by severity, escaped defects, cost, wall time, families, prompt versions"
+  - "orchestrator.py audit command: verifies traceability (24.17.1), enforcement (24.17.2)"
+  - "Resumption drill script: kills mid-build and mid-verify, fresh session with different model continues"
+  - "Diversity signal report: escaped defects same-family vs cross-family"
+acceptance:
+  AC1: "metrics/Mxx.yaml written for every milestone attempt"
+  AC2: "orchestrator audit passes: every COMPLETE has PASS verdict at merge commit + validity + logs"
+  AC3: "orchestrator audit passes: zero path ownership violations, zero non-orchestrator state transitions"
+  AC4: "Resumption drill passes twice: fresh session (different model) continues from repository to correct verdict"
+  AC5: "Diversity signal reported (not gated)"
+out_of_scope: [Global multi-project dashboard, real-time metrics streaming]
+size_hint: M

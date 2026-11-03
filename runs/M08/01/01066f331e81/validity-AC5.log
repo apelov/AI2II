@@ -1,0 +1,44 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac5_failing_env_checks_yield_env
+# commit: 1182a5d65f8c93e80eff7410d4ab0d8733f48bfa + mutant:ac5_skip_env_check_abort
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________________ test_ac5_failing_env_checks_yield_env _____________________
+
+    def test_ac5_failing_env_checks_yield_env() -> None:
+        """AC5: Failing env check yields ENV (exit 4); no peer build, start, or capture runs."""
+        with tempfile.TemporaryDirectory() as t:
+            tmp = Path(t)
+            marker_build = tmp / "marker_build"
+            marker_start = tmp / "marker_start"
+            m = make_exp(
+                tmp,
+                edits=[
+                    (
+                        '    command: python3 -c "import sys"',
+                        '    command: python3 -c "import sys"\n  - name: second-check\n    command: python3 -c "import sys; sys.exit(7)"',
+                    ),
+                    (
+                        "build: python3 build.py",
+                        f"build: python3 -c \"import pathlib; pathlib.Path('{marker_build}').touch()\"",
+                    ),
+                    (
+                        "bin/udp_echo_server.py --port",
+                        f"bin/udp_echo_server.py --port 47321 & python3 -c \"import pathlib; pathlib.Path('{marker_start}').touch()\" #",
+                    ),
+                ],
+            )
+            out = tmp / "out"
+            r = wire("run", str(m), "--cell", "echo", "--out", str(out))
+>           assert r.returncode == 4, f"expected exit 4, got {r.returncode}: {r.stdout}"
+E           AssertionError: expected exit 4, got 3: BLOCKED: echo: declared binary missing after build: echo-server: bin/udp_echo_server.py
+E             bundle: <tmp>
+E             
+E           assert 3 == 4
+E            +  where 3 = CompletedProcess(args=['/opt/anaconda3/bin/python3', '-m', 'wire', 'run', '/var/folders/31/7x197zc125z0cvx2x2kqftxm000...dp_echo_server.py\nbundle: <tmp>', stderr='').returncode
+
+acceptance/M08/test_m08.py:484: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac5_failing_env_checks_yield_env - As...
+1 failed in 0.44s
+
+# exit: 1

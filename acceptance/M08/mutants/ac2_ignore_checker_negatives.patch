@@ -1,0 +1,7 @@
+--- a/wire/checkers.py
++++ b/wire/checkers.py
+@@ -81,3 +81,3 @@
+             if acc:
+-                out.append((name, acc))
++                pass
+     return out

@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI2II — IETF Hackathon Participant & Protocol Engineering Guide</title>
+  <style>
+    :root {
+      --bg: #0a0f1d;
+      --bg-card: #121a2f;
+      --bg-card-hover: #17223d;
+      --bg-code: #070b14;
+      --border: #253356;
+      --text: #e6edf7;
+      --text-muted: #9aa8c7;
+      --accent: #58a6ff;
+      --accent-soft: rgba(88, 166, 255, 0.14);
+      --green: #3fb950;
+      --green-soft: rgba(63, 185, 80, 0.14);
+      --amber: #d29922;
+      --amber-soft: rgba(210, 153, 34, 0.15);
+      --red: #f85149;
+      --red-soft: rgba(248, 81, 73, 0.15);
+      --purple: #bc8cff;
+      --purple-soft: rgba(188, 140, 255, 0.15);
+      --cyan: #39d0d8;
+      --cyan-soft: rgba(57, 208, 216, 0.14);
+      --radius: 12px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 90px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 11px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(88, 166, 255, 0.32);
+    }
+
+    .badge.ietf {
+      background: var(--cyan-soft);
+      color: var(--cyan);
+      border-color: rgba(57, 208, 216, 0.35);
+    }
+
+    .badge.deliverables {
+      background: var(--purple-soft);
+      color: var(--purple);
+      border-color: rgba(188, 140, 255, 0.35);
+    }
+
+    h1 {
+      margin: 6px 0 8px;
+      font-size: 32px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-tagline {
+      font-size: 18px;
+      color: #c9d8f4;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 16.5px;
+      margin: 0 0 8px;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--text-muted);
+    }
+
+    /* Sticky Parameter Bar */
+    .param-bar {
+      position: sticky;
+      top: 10px;
+      z-index: 50;
+      background: rgba(18, 26, 47, 0.94);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 28px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .param-bar-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .param-bar-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .param-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 10px;
+    }
+
+    .param-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .param-field input {
+      background: var(--bg-code);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      width: 100%;
+    }
+
+    .param-field input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Section Boxes */
+    .section-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+
+    /* Pipeline Banner */
+    .pipeline-banner {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 14px 0 18px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--cyan);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .eli5-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .eli5-card {
+      background: rgba(7, 11, 20, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    .eli5-icon {
+      font-size: 26px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* Deliverables Grid */
+    .deliv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .deliv-card {
+      background: rgba(7, 11, 20, 0.65);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--cyan);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .deliv-card.b { border-left-color: var(--green); }
+    .deliv-card.c { border-left-color: var(--purple); }
+
+    /* Use-Case Tabs */
+    .usecase-tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .usecase-tab {
+      background: rgba(7, 11, 20, 0.65);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .usecase-tab:hover {
+      background: var(--bg-card-hover);
+      border-color: #3b4f82;
+    }
+
+    .usecase-tab.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .usecase-tab-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-tab-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.38;
+    }
+
+    .usecase-panel {
+      display: none;
+    }
+
+    .usecase-panel.active {
+      display: block;
+    }
+
+    /* Step Cards & Code Blocks */
+    .step-card {
+      background: rgba(7, 11, 20, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(88, 166, 255, 0.4);
+      font-weight: 700;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .cmd-block {
+      position: relative;
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 105px 12px 14px;
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-size: 12.8px;
+      color: #d2e4ff;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .copy-btn.copied {
+      background: var(--green-soft);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* Role & State Widgets */
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .role-card {
+      background: rgba(7, 11, 20, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      border-top: 3px solid var(--accent);
+    }
+
+    .role-card.architect { border-top-color: var(--purple); }
+    .role-card.reviewer { border-top-color: var(--amber); }
+    .role-card.builder { border-top-color: var(--accent); }
+    .role-card.verifier { border-top-color: var(--green); }
+
+    .role-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .path-pill {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin: 2px 2px 2px 0;
+    }
+
+    .path-allow {
+      background: var(--green-soft);
+      color: var(--green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+    }
+
+    .path-deny {
+      background: var(--red-soft);
+      color: var(--red);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+    }
+
+    .callout {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      margin-top: 12px;
+      border-left: 4px solid var(--accent);
+      background: rgba(88, 166, 255, 0.08);
+      color: var(--text);
+    }
+
+    .callout.warn {
+      border-left-color: var(--amber);
+      background: rgba(210, 153, 34, 0.08);
+    }
+
+    .callout.success {
+      border-left-color: var(--green);
+      background: rgba(63, 185, 80, 0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+      background: rgba(7, 11, 20, 0.45);
+    }
+
+    code.inline {
+      font-family: var(--font-mono);
+      font-size: 12.2px;
+      background: var(--bg-code);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: #a5d6ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-row">
+        <span class="badge ietf">IETF Hackathon Workflow</span>
+        <span class="badge">AI2II = AI to Implementation to Interop</span>
+        <span class="badge deliverables">Code + Interop Matrix + Draft Feedback</span>
+      </div>
+      <h1>AI2II: IETF Hackathon Participant Guide</h1>
+      <div class="hero-tagline">Bring an Internet-Draft. Build with AI. Test Two-Peer Interoperability.</div>
+      <p>
+        A complete ELI5 & copy-paste terminal runbook for turning an IETF Internet-Draft or RFC into a verified implementation, running cross-implementation interop tests across the Hackathon table, and generating structured feedback for draft authors.
+      </p>
+    </header>
+
+    <!-- Sticky Live Hackathon Customizer -->
+    <div class="param-bar">
+      <div class="param-bar-top">
+        <div class="param-bar-title">
+          ⚡ Customize Your Hackathon Experiment <span style="font-weight: 400; color: var(--text-muted); font-size: 12px;">(Every command & template below updates live as you type)</span>
+        </div>
+      </div>
+      <div class="param-controls">
+        <label class="param-field">
+          Internet-Draft / RFC
+          <input type="text" id="inp-draft" value="draft-ietf-schc-8824-update-04" />
+        </label>
+        <label class="param-field">
+          Target Section
+          <input type="text" id="inp-section" value="Section 5.2" />
+        </label>
+        <label class="param-field">
+          Milestone ID
+          <input type="text" id="inp-milestone" value="M03" />
+        </label>
+        <label class="param-field">
+          Attempt #
+          <input type="number" id="inp-attempt" value="1" min="1" max="9" />
+        </label>
+        <label class="param-field">
+          Your Impl (Peer A)
+          <input type="text" id="inp-peera" value="./impl-rust" />
+        </label>
+        <label class="param-field">
+          Table Peer (Peer B)
+          <input type="text" id="inp-peerb" value="./impl-python" />
+        </label>
+      </div>
+    </div>
+
+    <!-- Section 1: ELI5 for the IETF Hackathon -->
+    <section class="section-box">
+      <h2>🎈 1. ELI5: Why AI Fails at Protocol Hackathons (And How AI2II Fixes It)</h2>
+      <p>
+        Imagine sitting at an IETF Hackathon table with <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span></code>.
+        If you ask a single AI agent to <em>"implement <span class="lbl-section">Section 5.2</span> and write tests"</em>, it will:
+      </p>
+      <ul style="color: var(--text-muted); margin-top: 4px; margin-bottom: 14px;">
+        <li>Misread subtle bit/byte framing or <code class="inline">MUST NOT</code> edge cases in the Internet-Draft,</li>
+        <li>Write unit tests that mirror its own misunderstanding (grading its own homework), and</li>
+        <li>Tell you <strong>"100% of tests pass!"</strong> — right until you try talking to another participant's implementation (<code class="inline"><span class="lbl-peerb">./impl-python</span></code>) and the packets fail on the wire.</li>
+      </ul>
+
+      <div class="pipeline-banner">
+        Internet-Draft (<span class="lbl-draft">draft-ietf-schc-8824-update-04</span>) ──▶ Architect (Spec DAG) ──▶ [ Builder ⇄ Blind Verifier + Wire Mutants ] ──▶ Two-Peer Interop ──▶ Draft-Author Feedback
+      </div>
+
+      <div class="eli5-grid">
+        <div class="eli5-card">
+          <span class="eli5-icon">📜</span>
+          <h3>1. Pin the Draft Clauses</h3>
+          <p>The <strong>Architect</strong> extracts exact normative clauses (<code class="inline">MUST</code>, <code class="inline">MUST NOT</code>, packet formats) from <span class="lbl-section">Section 5.2</span> into falsifiable criteria (<code class="inline">AC1</code>, <code class="inline">AC2</code>, ...) locked by a SHA-256 hash.</p>
+        </div>
+        <div class="eli5-card">
+          <span class="eli5-icon">🔨</span>
+          <h3>2. Build in a Locked Worktree</h3>
+          <p>The <strong>Builder</strong> implements the wire parser/state-machine in <code class="inline">src/</code> inside an OS sandbox. It is physically blocked from editing acceptance tests or the spec.</p>
+        </div>
+        <div class="eli5-card">
+          <span class="eli5-icon">🧬</span>
+          <h3>3. Blind Verifier + Wire Mutants</h3>
+          <p>A <strong>different AI model family</strong> reads the Internet-Draft directly (without seeing the Builder's notes), writes wire-level tests (valid, malformed, truncated), and proves each test fails when a <strong>protocol mutant</strong> is injected.</p>
+        </div>
+        <div class="eli5-card">
+          <span class="eli5-icon">🤝</span>
+          <h3>4. Two-Peer Interop & Feedback</h3>
+          <p><code class="inline">./orch interop</code> tests your <code class="inline"><span class="lbl-peera">./impl-rust</span></code> against <code class="inline"><span class="lbl-peerb">./impl-python</span></code> (both Client→Server and reverse roles) and packages ambiguities for the draft authors.</p>
+        </div>
+      </div>
+
+      <!-- The 3 Hackathon Deliverables -->
+      <h3 style="margin-top: 22px;">🏆 What You Walk Away With at the End of the Hackathon (Deliverables A, B, C)</h3>
+      <div class="deliv-grid">
+        <div class="deliv-card a">
+          <strong>Deliverable A — Verified Protocol Code & Test Vectors</strong>
+          <p style="margin-top: 6px; font-size: 13px;">Working implementation + positive, negative, and malformed-byte conformance vectors in <code class="inline">acceptance/<span class="lbl-mid">M03</span>/</code> proven against mutants.</p>
+        </div>
+        <div class="deliv-card b">
+          <strong>Deliverable B — Reproducible Two-Peer Interop Matrix</strong>
+          <p style="margin-top: 6px; font-size: 13px;">Captured wire logs, exit codes, and <code class="inline">interop_report.md</code> between <code class="inline"><span class="lbl-peera">./impl-rust</span></code> and <code class="inline"><span class="lbl-peerb">./impl-python</span></code> + a filled <code class="inline">EXPERIMENT_RECORD.md</code>.</p>
+        </div>
+        <div class="deliv-card c">
+          <strong>Deliverable C — Structured Feedback to Draft Authors</strong>
+          <p style="margin-top: 6px; font-size: 13px;">Exact section references, ambiguities discovered (<code class="inline">PROTOCOL_SPEC</code> escalations &amp; verifier <code class="inline">could not verify</code> items), and proposed clarifications for the IETF WG.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Choose Your Hackathon Protocol Scenario -->
+    <section class="section-box">
+      <h2>🚀 2. Choose Your Hackathon Scenario (Step-by-Step Copy-Paste Runbooks)</h2>
+      <p>Select what you are doing at the Hackathon table right now:</p>
+
+      <div class="usecase-tabs" id="usecase-tabs">
+        <button class="usecase-tab active" data-target="uc-setup">
+          <div class="usecase-tab-title">👋 0. Hackathon Table Setup</div>
+          <div class="usecase-tab-sub">First 10 minutes: check environment, configure diverse AI models, and pin your Internet-Draft.</div>
+        </button>
+        <button class="usecase-tab" data-target="uc-greenfield">
+          <div class="usecase-tab-title">📜 1. Draft-Only → New Implementation</div>
+          <div class="usecase-tab-sub">Implement a selected section of an Internet-Draft or RFC from scratch with wire-mutant verification.</div>
+        </button>
+        <button class="usecase-tab" data-target="uc-port">
+          <div class="usecase-tab-title">🔄 2. Port an Existing Implementation</div>
+          <div class="usecase-tab-sub">Take a reference C/Python repo + Internet-Draft and port it to Rust/Go/TS with byte-for-byte parity.</div>
+        </button>
+        <button class="usecase-tab" data-target="uc-feature">
+          <div class="usecase-tab-title">🧩 3. Add Draft Extension / Fix Bug</div>
+          <div class="usecase-tab-sub">Add a new TLV/header option or fix a bug in an existing stack without breaking prior conformance.</div>
+        </button>
+        <button class="usecase-tab" data-target="uc-interop">
+          <div class="usecase-tab-title">🤝 4. Run Two-Peer Interop Matrix</div>
+          <div class="usecase-tab-sub">Test your implementation against another team's peer across the table (pairwise, full, smoke).</div>
+        </button>
+        <button class="usecase-tab" data-target="uc-feedback">
+          <div class="usecase-tab-title">📬 5. Draft-Author Feedback & Report</div>
+          <div class="usecase-tab-sub">Handle protocol ambiguities (`PROTOCOL_SPEC`) and generate your Hackathon presentation & feedback.</div>
+        </button>
+      </div>
+
+      <!-- SCENARIO 0: HACKATHON TABLE SETUP -->
+      <div class="usecase-panel active" id="uc-setup">
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <span class="step-title">Run System & Sandbox Diagnostics (`./orch doctor`)</span>
+          </div>
+          <p>Confirm that <code class="inline">git</code>, <code class="inline">python3</code>, your OS sandbox (<code class="inline">sandbox-exec</code> / <code class="inline">bwrap</code>), and the Milestone DAG are ready.</p>
+          <div class="cmd-block" data-template="./orch doctor&#10;./scripts/verify_gate.sh"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <span class="step-title">Configure Cross-Family AI Models for Builder vs. Verifier</span>
+          </div>
+          <p>Why? If the same model family builds and verifies your packet parser, both share the same blind spots on the RFC text. Configure different model families (e.g., OpenAI/Codex for Builder, Anthropic/Claude for Verifier, or local models):</p>
+          <div class="cmd-block" data-template="cp -n agents.local.yaml.template agents.local.yaml&#10;./orch models list"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <span class="step-title">Pin Your Internet-Draft & Start Your Hackathon Experiment Record</span>
+          </div>
+          <p>Copy the framework-neutral IETF Hackathon experiment record template and record the exact revision and SHA-256 checksum of <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span>.txt</code>:</p>
+          <div class="cmd-block" data-template="cp public-architecture/templates/EXPERIMENT_RECORD.md EXPERIMENT_{M}.md&#10;shasum -a 256 {D}.txt || true"></div>
+        </div>
+      </div>
+
+      <!-- SCENARIO 1: DRAFT-ONLY -> NEW IMPLEMENTATION -->
+      <div class="usecase-panel" id="uc-greenfield">
+        <div class="callout">
+          <strong>Use Case (Goal 2):</strong> You have <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span></code> (<span class="lbl-section">Section 5.2</span>) and want to implement that behavior from scratch and prove it conforms to both positive and malformed-packet requirements.
+        </div>
+
+        <div class="step-card" style="margin-top: 14px;">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <span class="step-title">Initialize Milestone <span class="lbl-mid">M03</span> & Map Normative Draft Clauses to `AC1..ACn`</span>
+          </div>
+          <p>Create <code class="inline">milestones/<span class="lbl-mid">M03</span>/spec.yaml</code>. For every <code class="inline">MUST</code> and <code class="inline">MUST NOT</code> in <span class="lbl-section">Section 5.2</span>, write a falsifiable criterion (including malformed packet rejection):</p>
+          <div class="cmd-block" data-template="./orch init-milestone {M}&#10;cat << 'EOF' > milestones/{M}/spec.yaml&#10;id: {M}&#10;title: &quot;Implement {D} ({S})&quot;&#10;objective: &quot;Implement wire encoding, decoding, and malformed frame rejection for {D} {S}&quot;&#10;depends_on: []&#10;inputs:&#10;  - &quot;{D}.txt ({S})&quot;&#10;deliverables:&#10;  - &quot;src/protocol_codec.py&quot;&#10;acceptance:&#10;  AC1: &quot;Valid {S} frame encodes and decodes back to identical fields (round-trip)&quot;&#10;  AC2: &quot;Frame truncated by 1 byte or with invalid version/magic bits MUST be rejected with ProtocolError&quot;&#10;  AC3: &quot;Boundary field values (0, max_uint) are encoded per {S} bit-width rules&quot;&#10;out_of_scope:&#10;  - &quot;Optional extensions outside {S}&quot;&#10;size_hint: S&#10;EOF"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <span class="step-title">Validate, Run Goldfish Check, Seal & Approve Gate G2</span>
+          </div>
+          <p>Check the spec for ambiguity, seal the DAG hash, and lock <code class="inline">criteria_version</code> before any code is written:</p>
+          <div class="cmd-block" data-template="./orch validate&#10;./orch goldfish&#10;./orch seal&#10;./orch transition {M} DRAFT REVIEWED&#10;./orch approve-gate G2 {M} --note &quot;Approved {D} {S} criteria&quot;&#10;./orch transition {M} REVIEWED APPROVED&#10;./orch transition {M} APPROVED READY"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <span class="step-title">Dispatch the Builder Agent to Implement <span class="lbl-section">Section 5.2</span></span>
+          </div>
+          <p>The Builder implements <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span></code> <span class="lbl-section">Section 5.2</span> in an isolated worktree and records any draft ambiguities under <code class="inline">Could NOT verify</code> in <code class="inline">build.md</code>:</p>
+          <div class="cmd-block" data-template="./orch transition {M} READY BUILDING&#10;./orch dispatch {M} builder&#10;./orch run-tests {M} --name builder&#10;./orch transition {M} BUILDING BUILT"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">4</span>
+            <span class="step-title">Blind Verification with Protocol Wire Mutants</span>
+          </div>
+          <p>The Verifier writes conformance tests in <code class="inline">acceptance/<span class="lbl-mid">M03</span>/</code> directly from <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span></code> and proves each test fails at <code class="inline">base</code> or against a wire mutant (e.g., <code class="inline">mutant:truncate_buffer</code> or <code class="inline">mutant:skip_validation</code>):</p>
+          <div class="cmd-block" data-template="./orch transition {M} BUILT VERIFYING&#10;./orch dispatch {M} verifier&#10;./orch verify {M} {A}&#10;./orch transition {M} VERIFYING VERIFIED&#10;./orch transition {M} VERIFIED COMPLETE"></div>
+        </div>
+      </div>
+
+      <!-- SCENARIO 2: PORT AN EXISTING IMPLEMENTATION -->
+      <div class="usecase-panel" id="uc-port">
+        <div class="callout">
+          <strong>Use Case (Goal 1):</strong> You have an existing reference implementation (<code class="inline"><span class="lbl-peerb">./impl-python</span></code>) and <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span></code>, and want to port it to a new language/target (<code class="inline"><span class="lbl-peera">./impl-rust</span></code>) and prove wire interoperability.
+        </div>
+
+        <div class="step-card" style="margin-top: 14px;">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <span class="step-title">Pin Reference Implementation Commit & Extract Public Signatures</span>
+          </div>
+          <p>Record the reference commit SHA and use <code class="inline">./orch context</code> to inspect the 1-hop public API signatures of the reference implementation:</p>
+          <div class="cmd-block" data-template="git -C {PB} rev-parse HEAD&#10;./orch context {M}"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <span class="step-title">Build & Verify Target Port (<span class="lbl-peera">./impl-rust</span>) Against Reference Test Vectors</span>
+          </div>
+          <p>Dispatch the Builder to port the module, then have the Verifier test byte-for-byte wire compatibility against the reference vectors:</p>
+          <div class="cmd-block" data-template="./orch transition {M} READY BUILDING&#10;./orch dispatch {M} builder&#10;./orch run-tests {M} --name builder&#10;./orch transition {M} BUILDING BUILT&#10;./orch transition {M} BUILT VERIFYING&#10;./orch dispatch {M} verifier&#10;./orch verify {M} {A}"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <span class="step-title">Run Live Interop Between Original (<span class="lbl-peerb">./impl-python</span>) and Port (<span class="lbl-peera">./impl-rust</span>)</span>
+          </div>
+          <p>Verify that packets generated by the original implementation are accepted by the port and vice-versa:</p>
+          <div class="cmd-block" data-template="./orch interop {M} {PA} {PB} --matrix pairwise --output interop-{M}"></div>
+        </div>
+      </div>
+
+      <!-- SCENARIO 3: ADD EXTENSION OR FIX INTEROP BUG -->
+      <div class="usecase-panel" id="uc-feature">
+        <div class="callout">
+          <strong>Use Case (Goal 3):</strong> A new version of <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span></code> updated <span class="lbl-section">Section 5.2</span>, or you found a bug at the Hackathon table and need to update your implementation without breaking earlier milestones.
+        </div>
+
+        <div class="step-card" style="margin-top: 14px;">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <span class="step-title">Update the Milestone Spec & Propagate Cascading Invalidation</span>
+          </div>
+          <p>When <code class="inline">milestones/<span class="lbl-mid">M03</span>/spec.yaml</code> changes to reflect the new draft revision, <code class="inline">./orch invalidate</code> transitions <span class="lbl-mid">M03</span> to <code class="inline">DRAFT</code> and marks dependent milestones <code class="inline">STALE</code> so nothing ships with outdated assumptions:</p>
+          <div class="cmd-block" data-template="./orch invalidate --files milestones/{M}/spec.yaml&#10;./orch reseal"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <span class="step-title">Re-Verify & Run Full Regression Integration</span>
+          </div>
+          <p>When transitioning <code class="inline">VERIFIED → COMPLETE</code>, the orchestrator automatically re-runs the acceptance suites of <strong>all previously <code class="inline">COMPLETE</code> milestones</strong> to guarantee your extension or bug fix didn't break core protocol framing:</p>
+          <div class="cmd-block" data-template="./orch verify {M} {A}&#10;./orch transition {M} VERIFYING VERIFIED&#10;./orch transition {M} VERIFIED COMPLETE"></div>
+        </div>
+      </div>
+
+      <!-- SCENARIO 4: TWO-PEER INTEROP MATRIX -->
+      <div class="usecase-panel" id="uc-interop">
+        <div class="callout success">
+          <strong>Use Case (Goal 4):</strong> You and another Hackathon participant have independent implementations (<code class="inline"><span class="lbl-peera">./impl-rust</span></code> and <code class="inline"><span class="lbl-peerb">./impl-python</span></code>) and want to run a repeatable interop matrix with captured logs.
+        </div>
+
+        <div class="step-card" style="margin-top: 14px;">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <span class="step-title">Run Pairwise Interop Matrix (`./orch interop`)</span>
+          </div>
+          <p>Executes bounded test runs for each implementation pair, records exit codes and logs under <code class="inline">interop-<span class="lbl-mid">M03</span>/</code>, and generates <code class="inline">interop_report.md</code> (fails closed if any implementation directory is missing or fewer than 2 peers are provided):</p>
+          <div class="cmd-block" data-template="./orch interop {M} {PA} {PB} --matrix pairwise --output interop-{M}"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <span class="step-title">Run Full Bidirectional Matrix (Client→Server AND Server→Client)</span>
+          </div>
+          <p>Tests every directional permutation (<code class="inline">A→B</code> and <code class="inline">B→A</code>) so both client and server state machines are exercised in each peer:</p>
+          <div class="cmd-block" data-template="./orch interop {M} {PA} {PB} --matrix full --output interop-{M}-full"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <span class="step-title">Inspect Generated Interop Report & Wire Logs</span>
+          </div>
+          <p>View the Markdown matrix table and individual peer execution logs for your Hackathon presentation slide:</p>
+          <div class="cmd-block" data-template="cat interop-{M}/interop_report.md&#10;ls -la interop-{M}/"></div>
+        </div>
+      </div>
+
+      <!-- SCENARIO 5: DRAFT-AUTHOR FEEDBACK & EXPERIMENT RECORD -->
+      <div class="usecase-panel" id="uc-feedback">
+        <div class="callout warn">
+          <strong>Deliverable C (Feedback to IETF Draft Authors):</strong> Often the most valuable outcome at an IETF Hackathon is discovering that <span class="lbl-section">Section 5.2</span> of <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span></code> can be interpreted in two incompatible ways!
+        </div>
+
+        <div class="step-card" style="margin-top: 14px;">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <span class="step-title">Escalate a Protocol Spec Ambiguity (`PROTOCOL_SPEC`)</span>
+          </div>
+          <p>When the Builder and Verifier disagree on what <code class="inline"><span class="lbl-draft">draft-ietf-schc-8824-update-04</span></code> <span class="lbl-section">Section 5.2</span> means, open an escalation and record lessons in the continuous improvement log:</p>
+          <div class="cmd-block" data-template="./orch escalate {M} {A} builder_dispute&#10;./orch improve pattern &quot;Ambiguity in {D} {S}: edge case behavior on empty payload&quot; --context &quot;{M} interop&quot; --tags protocol draft-feedback"></div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <span class="step-title">Copy-Paste Template: Structured Feedback for Draft Authors</span>
+          </div>
+          <p>Use this template to send your findings to the Internet-Draft authors or WG mailing list (auto-populated with your current draft and peers):</p>
+          <div class="cmd-block" data-template="cat << 'EOF' > DRAFT_FEEDBACK_{M}.md&#10;# IETF Hackathon Feedback: {D} ({S})&#10;&#10;## 1. Implementations &amp; Revisions Tested&#10;- Peer A: {PA}&#10;- Peer B: {PB}&#10;- Milestone / Verification Record: milestones/{M}/attempts/{APAD}/verification.yaml&#10;&#10;## 2. Ambiguities / Questions for Draft Authors ({S})&#10;- **Section:** {D}, {S}&#10;- **Observed Issue:** Peer A and Peer B interpreted [field/behavior] differently during pairwise interop.&#10;- **Peer A Interpretation:** [describe]&#10;- **Peer B Interpretation:** [describe]&#10;- **Suggested Clarification:** Specify whether [condition] MUST be rejected or silently ignored.&#10;&#10;## 3. Conformance Test Vectors Contributed&#10;- Positive &amp; Negative wire vectors: acceptance/{M}/&#10;- Negative-control mutants verified: acceptance/{M}/mutants/&#10;- Interop Matrix Report: interop-{M}/interop_report.md&#10;EOF"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Protocol Mutant Library Cheat Sheet -->
+    <section class="section-box">
+      <h2>🧬 3. Protocol Mutant Cheat Sheet (How the Verifier Proves Tests Are Real)</h2>
+      <p>
+        In AI2II, a passing test is <strong>not accepted</strong> unless the Verifier proves the test <em>fails</em> when the protocol implementation is broken (<code class="inline">fails_on: base</code> or <code class="inline">fails_on: mutant:&lt;name&gt;</code>). Here are the 5 standard protocol mutants from <code class="inline">docs/BEST_PRACTICES.md</code>:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Mutant Name</th>
+            <th>What the Patch Breaks in <code class="inline">src/</code></th>
+            <th>What Protocol Bug It Proves Your Test Catches</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code class="inline">mutant:wrong_constant</code></td>
+            <td>Flips a magic byte, protocol version bit, or TLV type ID.</td>
+            <td>Proves the test actually inspects wire header bytes instead of only checking return types.</td>
+          </tr>
+          <tr>
+            <td><code class="inline">mutant:truncate_buffer</code></td>
+            <td>Slices <code class="inline">payload[:-1]</code> (reads <code class="inline">N-1</code> bytes instead of <code class="inline">N</code>).</td>
+            <td>Proves the parser test catches truncated packets and length-field mismatches.</td>
+          </tr>
+          <tr>
+            <td><code class="inline">mutant:skip_validation</code></td>
+            <td>Comments out checksum, MIC, or header bounds validation.</td>
+            <td>Proves negative tests (<code class="inline">MUST reject</code> in <span class="lbl-section">Section 5.2</span>) actually trigger on corrupted frames.</td>
+          </tr>
+          <tr>
+            <td><code class="inline">mutant:invert_condition</code></td>
+            <td>Changes boundary check <code class="inline">if length &gt; MAX_MTU</code> to <code class="inline">&gt;=</code> or <code class="inline">&lt;</code>.</td>
+            <td>Proves off-by-one boundary tests for RFC field limits are falsifiable.</td>
+          </tr>
+          <tr>
+            <td><code class="inline">mutant:ignore_exit_code</code></td>
+            <td>Forces peer runner or decoder to return <code class="inline">0</code> on error.</td>
+            <td>Proves interop harness tests detect peer crashes or silent rejection failures.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="step-card" style="margin-top: 14px;">
+        <div class="step-header">
+          <span class="step-num">⚡</span>
+          <span class="step-title">Run a Protocol Mutant Check in an Isolated Worktree</span>
+        </div>
+        <p><code class="inline">./orch run-tests</code> applies <code class="inline">acceptance/<span class="lbl-mid">M03</span>/mutants/truncate_buffer.patch</code> inside a temporary detached worktree so your working tree is never dirtied:</p>
+        <div class="cmd-block" data-template="./orch run-tests {M} --name validity-AC2 --at mutant:truncate_buffer --paths acceptance/{M}"></div>
+      </div>
+    </section>
+
+    <!-- Section 4: The 4 Roles & Path Ownership -->
+    <section class="section-box">
+      <h2>🛡️ 4. Role Ownership Rules (Enforced by `./orch`)</h2>
+      <p>Every commit or dispatch is diffed against <code class="inline">workflow.yaml</code> ownership rules. Any out-of-bounds edit is automatically rejected:</p>
+      <div class="roles-grid">
+        <div class="role-card architect">
+          <span class="role-tag" style="background: var(--purple-soft); color: var(--purple);">ROLE: ARCHITECT</span>
+          <h3>Draft → Spec DAG</h3>
+          <div>
+            <span class="path-pill path-allow">✓ DESIGN.md</span>
+            <span class="path-pill path-allow">✓ milestones/*/spec.yaml</span>
+            <span class="path-pill path-allow">✓ escalations/*</span>
+            <span class="path-pill path-deny">✗ src/**</span>
+            <span class="path-pill path-deny">✗ acceptance/**</span>
+          </div>
+        </div>
+        <div class="role-card reviewer">
+          <span class="role-tag" style="background: var(--amber-soft); color: var(--amber);">ROLE: REVIEWER</span>
+          <h3>Spec &amp; Design Critique</h3>
+          <div>
+            <span class="path-pill path-allow">✓ reviews/*</span>
+            <span class="path-pill path-deny">✗ DESIGN.md</span>
+            <span class="path-pill path-deny">✗ milestones/**</span>
+            <span class="path-pill path-deny">✗ src/**</span>
+          </div>
+        </div>
+        <div class="role-card builder">
+          <span class="role-tag" style="background: var(--accent-soft); color: var(--accent);">ROLE: BUILDER</span>
+          <h3>Protocol Implementation</h3>
+          <div>
+            <span class="path-pill path-allow">✓ src/**</span>
+            <span class="path-pill path-allow">✓ tests/**</span>
+            <span class="path-pill path-allow">✓ attempts/NN/build.md</span>
+            <span class="path-pill path-deny">✗ acceptance/**</span>
+            <span class="path-pill path-deny">✗ spec.yaml / state.yaml</span>
+          </div>
+        </div>
+        <div class="role-card verifier">
+          <span class="role-tag" style="background: var(--green-soft); color: var(--green);">ROLE: VERIFIER</span>
+          <h3>Blind Conformance &amp; Mutants</h3>
+          <div>
+            <span class="path-pill path-allow">✓ acceptance/{id}/**</span>
+            <span class="path-pill path-allow">✓ attempts/NN/verification.yaml</span>
+            <span class="path-pill path-deny">✗ src/**</span>
+            <span class="path-pill path-deny">✗ tests/**</span>
+            <span class="path-pill path-deny">✗ spec.yaml / state.yaml</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const inpDraft = document.getElementById('inp-draft');
+    const inpSection = document.getElementById('inp-section');
+    const inpMid = document.getElementById('inp-milestone');
+    const inpAtt = document.getElementById('inp-attempt');
+    const inpPeerA = document.getElementById('inp-peera');
+    const inpPeerB = document.getElementById('inp-peerb');
+
+    function renderCommands() {
+      const draft = (inpDraft.value || 'draft-ietf-example-00').trim();
+      const section = (inpSection.value || 'Section 4.1').trim();
+      const mid = (inpMid.value || 'M03').trim();
+      const att = (inpAtt.value || '1').trim();
+      const attPad = att.padStart(2, '0');
+      const peerA = (inpPeerA.value || './impl-rust').trim();
+      const peerB = (inpPeerB.value || './impl-python').trim();
+
+      document.querySelectorAll('.lbl-draft').forEach(el => { el.textContent = draft; });
+      document.querySelectorAll('.lbl-section').forEach(el => { el.textContent = section; });
+      document.querySelectorAll('.lbl-mid').forEach(el => { el.textContent = mid; });
+      document.querySelectorAll('.lbl-att-pad').forEach(el => { el.textContent = attPad; });
+      document.querySelectorAll('.lbl-peera').forEach(el => { el.textContent = peerA; });
+      document.querySelectorAll('.lbl-peerb').forEach(el => { el.textContent = peerB; });
+
+      document.querySelectorAll('.cmd-block').forEach(block => {
+        const raw = block.getAttribute('data-template') || '';
+        const rendered = raw
+          .replace(/\{D\}/g, draft)
+          .replace(/\{S\}/g, section)
+          .replace(/\{M\}/g, mid)
+          .replace(/\{A\}/g, att)
+          .replace(/\{APAD\}/g, attPad)
+          .replace(/\{PA\}/g, peerA)
+          .replace(/\{PB\}/g, peerB);
+
+        let codeEl = block.querySelector('.cmd-text');
+        if (!codeEl) {
+          codeEl = document.createElement('div');
+          codeEl.className = 'cmd-text';
+          block.appendChild(codeEl);
+        }
+        codeEl.textContent = rendered;
+
+        let btn = block.querySelector('.copy-btn');
+        if (!btn) {
+          btn = document.createElement('button');
+          btn.className = 'copy-btn';
+          btn.textContent = 'Copy';
+          btn.addEventListener('click', () => {
+            const textToCopy = block.querySelector('.cmd-text').textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              btn.textContent = '✓ Copied!';
+              btn.classList.add('copied');
+              setTimeout(() => {
+                btn.textContent = 'Copy';
+                btn.classList.remove('copied');
+              }, 1600);
+            });
+          });
+          block.appendChild(btn);
+        }
+      });
+    }
+
+    [inpDraft, inpSection, inpMid, inpAtt, inpPeerA, inpPeerB].forEach(inp => {
+      inp.addEventListener('input', renderCommands);
+    });
+
+    // Tab switching
+    document.querySelectorAll('.usecase-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.usecase-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.usecase-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const target = document.getElementById(tab.getAttribute('data-target'));
+        if (target) target.classList.add('active');
+      });
+    });
+
+    renderCommands();
+  </script>
+</body>
+</html>

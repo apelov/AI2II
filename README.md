@@ -1,0 +1,82 @@
+# AI2II — AI-assisted IETF protocol implementation and interop
+
+AI2II is a workflow and toolset for building protocol implementations with AI agents
+**without trusting the agents' claims**. Implementation and verification are done by
+independent agents (different model families), a deterministic orchestrator owns every
+state change and runs every test itself, and interop claims are backed by wire-level
+evidence bundles that anyone can re-check.
+
+Prepared for the IETF Hackathon (champions: Alexander Pelov, Ivaylo Petrov).
+
+## What is here
+
+| Path | What it is |
+|---|---|
+| `orch`, `orchestrator.py` | The orchestrator (milestone M01): lifecycle commands, path-ownership checks, orchestrator-run tests with logs, verdict validation, integration with rollback. |
+| `wire/` | Wire evidence (M08) and secured-protocol support (M09): runs interop cells under packet capture and writes a self-verifying bundle. |
+| `AGENTS.md` | Contract and role prompts for architect, reviewer, builder, verifier. |
+| `DESIGN.md` | The design; sections 24.20 (wire evidence) and 24.21 (secured protocols) describe `wire/`. |
+| `workflow.yaml` | Policy: roles, diversity rules, limits, path ownership. |
+| `milestones/` | Specs and orchestrator-written state for each milestone; `attempts/` hold build reports and verification records. |
+| `reviews/`, `approvals/`, `escalations/` | Independent reviews, human gate decisions, escalations. |
+| `runs/` | Orchestrator-run test logs (validity runs included) and wire evidence bundles. |
+| `experiments/oscore-n1/` | First real experiment: cell N1 of the CoAP multicast-notifications interop matrix. |
+| `tests/`, `acceptance/` | Builder tests and independent acceptance tests (with mutants) per milestone. |
+
+## Status
+
+| Milestone | State |
+|---|---|
+| M01 Orchestrator minimum | COMPLETE |
+| M08 Wire evidence bundles and checked test vectors | COMPLETE |
+| M09 Secured protocols: exported keys and decrypted captures | COMPLETE |
+| M02 Agent dispatch | READY (not built; agents are launched by hand through the lifecycle commands) |
+| M03–M07 | DRAFT |
+
+Each COMPLETE milestone was built by one model family and verified by another, with
+acceptance tests that are shown to fail on the pre-implementation code or under deliberate
+mutants of the implementation. The records under `milestones/*/attempts/`, `reviews/` and
+`runs/` name the model family of each role: that provenance is how the independence rule is
+checked. Commit hashes cited in those records refer to the development repository; this
+public repository starts from a fresh history.
+
+## Quick start: wire evidence
+
+Requirements: macOS or Linux, Python 3.11+ with PyYAML, `tcpdump` with capture permission
+(macOS: membership in `access_bpf`). Wireshark (`tshark`, `editcap`) is needed only by
+experiments that use it.
+
+```sh
+python3 -m wire validate-checkers wire/example/udp_echo/interop.yaml
+python3 -m wire run wire/example/udp_echo/interop.yaml --cell echo --out /tmp/echo
+python3 -m wire verify-bundle /tmp/echo/echo
+```
+
+A bundle holds `capture.pcap`, one log per peer and checker, `env.json` (commits, binary
+SHA-256, tool versions), `verdict.json` (exactly one of PASS / FAIL / BLOCKED / ENV) and
+`SHA256SUMS`. Every checker must reject its declared negative inputs in every run, and a
+checker may not come from the same model family as the implementation under test.
+
+For secured protocols (TLS, DTLS, QUIC, ...), peers export their keys (for example via
+`SSLKEYLOGFILE`) and the bundle additionally holds `capture-decrypted.pcapng`, which opens
+decrypted in Wireshark. See `wire/example/tls_echo/` and DESIGN.md 24.21. Example keys are
+throwaway test keys; never run experiments with real keys.
+
+## Quick start: orchestrator
+
+```sh
+./orch status
+./orch show M08
+./scripts/verify_gate.sh          # lint, test hygiene, DAG and ownership checks, unit tests
+```
+
+## Evidence included
+
+`runs/wire/oscore-n1/` holds two bundles of the CoAP multicast-notifications cell N1
+(C server, three C clients): an `ENV` bundle (the multicast route env check failed, nothing
+ran) and a `PASS` bundle with the capture, peer logs and an independent checker's results.
+Re-check them with `python3 -m wire verify-bundle <bundle>`. See `experiments/oscore-n1/README.md`.
+
+## License
+
+BSD-3-Clause, see `LICENSE`.

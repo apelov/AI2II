@@ -1,0 +1,24 @@
+{
+  "cell": "N1",
+  "verdict": "ENV",
+  "reason": "env check failed: multicast-route-lo0",
+  "peers": {
+    "c-server": {
+      "exit": null,
+      "timed_out": false,
+      "binaries": {},
+      "commit": null,
+      "dirty": null
+    },
+    "c-clients": {
+      "exit": null,
+      "timed_out": false,
+      "binaries": {},
+      "commit": null,
+      "dirty": null
+    }
+  },
+  "checkers": {},
+  "started_at": "2026-11-03T12:08:29Z",
+  "ended_at": "2026-11-03T12:08:29Z"
+}

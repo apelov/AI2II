@@ -1,0 +1,16 @@
+# gate: manual orchestrator (24.3), main ./orch at 9775a90
+# commit: 61188176b12d2a3abbeca400920b917b51e536e8
+# base: 67a47956cef9548e56d82848be8fbfeae93b22de
+clean worktree: yes
+build.md committed: yes
+ownership: PASSED (./orch check-ownership builder M01 01 --files <base..commit diff>)
+builder tests (orchestrator run): FAILED, exit 1, runs/M01/01/61188176b12d/build-corr.log
+  cause: tests/test_governance_helpers.py does 'from flow_repo import ...'; the orchestrator test
+  environment puts main's src/_shims first on PYTHONPATH, so 'python3 -m pytest' is the stdlib shim,
+  which does not add the test directory to sys.path. Under real pytest (informational only, not
+  evidence) the 42 builder tests pass and leave the worktree clean.
+review findings (inspection, for the corrective run):
+  - tests/test_e011_boundary.py (E011 regression tests required by G3-E011, DESIGN 24.3 rule 3) deleted.
+  - out-of-scope commands removed (audit, escalate, transition, verify); acceptance suites of DRAFT
+    milestones M02-M06 now fail (29 failures); M00 passes.
+verdict: REJECTED; M01 stays BUILDING

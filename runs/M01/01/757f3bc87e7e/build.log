@@ -1,0 +1,6 @@
+# command: python3 -m pytest -q -p no:cacheprovider tests
+# commit: 757f3bc87e7e363ee1888b0b96ec7d7782d35fb7
+# exit: 0
+
+....                                                                     [100%]
+4 passed in 0.32s

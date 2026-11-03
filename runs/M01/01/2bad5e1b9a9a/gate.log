@@ -1,0 +1,15 @@
+# gate: manual orchestrator (24.3), main ./orch at b9da5c8
+# verifier commit: 2bad5e1b9a9aa059352cf25e6466ae823dcd8104 (agy, google, gemini-3.8-flash-high; fix-up after bf7f92fe64d5); implementation commit: ebfa283626c0
+verification.yaml: verdict PASS, criteria_version and commit match state, all 11 ids, validity for every PASS, findings: []
+verifier ownership: PASSED
+orchestrator acceptance run at verifier HEAD (invoked from verify worktree): PASSED, 11 passed (runs/M01/01/2bad5e1b9a9a/final2-acc.log)
+orchestrator validity re-runs: all 11 fail on assertions (runs/M01/01/2bad5e1b9a9a/orch2-validity-AC2..AC11.log; AC1 at base: runs/M01/01/67a47956cef9/orch2-validity-AC1.log)
+  AC9 mutant ac9_no_restore skips 'git reset --hard pre' in cmd_integrate; test asserts main restored.
+  AC11 mutant ac11_no_repo_lock makes _repo_lock a no-op; 3 concurrent finishes collide on .git/index.lock.
+flakiness: AC11 positive passed 3/3 (runs/M01/01/2bad5e1b9a9a/ac11-repeat-*.log); AC11 mutant failed 2/2 (runs/M01/01/2bad5e1b9a9a/ac11-mutant-repeat-*.log)
+scripts/verify_gate.sh at verifier HEAD (scratch checkout): GATE PASSED, checkout left clean
+residual (minor, orchestrator review): AC11 is falsified through a git index.lock collision, not through a lost
+  state.yaml update; a no-lock implementation that serialised git commands some other way would not be caught.
+  Timing-dependent; 3/3 and 2/2 here.
+pending human decisions: VERIFIED (E012 point 5: human reads these logs); architect sign-off on build.md design deviations.
+status: stays VERIFYING

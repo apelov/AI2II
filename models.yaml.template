@@ -1,0 +1,89 @@
+# Models Configuration for AI2II Orchestrator
+# Copy this to models.yaml and customize for your environment
+# This file is NOT committed (add to .gitignore)
+
+models:
+  # High-tier models (for architect, reviewer)
+  claude-opus:
+    provider: anthropic
+    model: claude-opus-4-1-20250805
+    tier: high
+    command: "claude -p --model opus {prompt_file}"
+
+  claude-sonnet:
+    provider: anthropic
+    model: claude-sonnet-4-20250514
+    tier: standard
+    command: "claude -p --model sonnet {prompt_file}"
+
+  # Standard-tier models (for builder, verifier)
+  gpt-4o:
+    provider: openai
+    model: gpt-4o-2024-11-20
+    tier: standard
+    command: "codex exec {prompt_file}"
+
+  gpt-4o-mini:
+    provider: openai
+    model: gpt-4o-mini-2024-07-18
+    tier: standard
+    command: "codex exec {prompt_file}"
+
+  # Local models (for cost-sensitive runs)
+  local-qwen:
+    provider: local
+    model: qwen2.5-coder-32b
+    tier: standard
+    command: "aider --model qwen2.5-coder-32b {prompt_file}"
+
+  local-llama:
+    provider: local
+    model: llama3.2-3b
+    tier: standard
+    command: "ollama run llama3.2:3b {prompt_file}"
+
+  # Human fallback
+  human:
+    provider: human
+    model: human
+    tier: high
+    command: "scripts/human-task.sh {prompt_file}"
+
+# Role assignments (order = fallback priority)
+assignments:
+  architect: [claude-opus, human]
+  reviewer:  [claude-opus, gpt-4o, human]
+  builder:   [gpt-4o, claude-sonnet, local-qwen, human]
+  verifier:  [claude-sonnet, gpt-4o, local-qwen, human]
+
+# Diversity policy (enforced by orchestrator)
+diversity:
+  verifier_differs_from_builder: family   # SHOULD; values: family | model | session
+  reviewer_differs_from_architect: family
+
+# Benchmark configurations
+benchmarks:
+  # Standard benchmark prompt for evaluating model quality on protocol tasks
+  protocol_implementation:
+    prompt: |
+      Implement a minimal {protocol} client in {language} based on this draft section:
+      {draft_section}
+
+      Requirements:
+      - Handle {specific_edge_case}
+      - Include error handling for {error_condition}
+      - Write tests demonstrating conformance to {rfc_section}
+    languages: [rust, go, python, c]
+    protocols: [oscore, coap, quic, icmpv6]
+    draft_sources: [https://datatracker.ietf.org/doc/...]
+
+  verification_test_generation:
+    prompt: |
+      Write falsification tests for {acceptance_criterion} of {protocol}.
+      Include:
+      - Positive conformance case
+      - Negative/malformed input cases
+      - Missing dependency cases
+      - Failure path cases
+      - Mutant injection point (where test should fail if implementation is broken)
+    criteria: [AC1, AC2, AC3, AC4, AC5, AC6]

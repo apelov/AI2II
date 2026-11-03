@@ -1,0 +1,17 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01/test_m01.py::test_ac6_pass_verdict_requires_validity_and_acceptance
+# commit: 2bad5e1b9a9a
+F
+=== FAIL: acceptance/M01/test_m01.py::test_ac6_pass_verdict_requires_validity_and_acceptance ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 248, in wrapper
+    fn(r)
+  File "<tmp>", line 484, in test_ac6_pass_verdict_requires_validity_and_acceptance
+    assert rc == 1 and "final-acc.log" in err
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+1 failed
+
+# exit: 1

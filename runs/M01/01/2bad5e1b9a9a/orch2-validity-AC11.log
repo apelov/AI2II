@@ -1,0 +1,17 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01/test_m01.py::test_ac11_concurrent_finish_build_preserves_state
+# commit: 2bad5e1b9a9a
+F
+=== FAIL: acceptance/M01/test_m01.py::test_ac11_concurrent_finish_build_preserves_state ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 248, in wrapper
+    fn(r)
+  File "<tmp>", line 725, in test_ac11_concurrent_finish_build_preserves_state
+    assert [p.returncode for p in procs] == [0, 0, 0], results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [('', "refused: git -c user.name=orchestrator: fatal: Unable to create '<tmp>': File exists.\n\nAnother git process seems to be running in this repository, or the lock file may be stale\n"), ('M03: BUILDING -> BUILT at 964ecda35dd9\n', ''), ('', "refused: git add -A: fatal: Unable to create '<tmp>': File exists.\n\nAnother git process seems to be running in this repository, or the lock file may be stale\n")]
+
+1 failed
+
+# exit: 1

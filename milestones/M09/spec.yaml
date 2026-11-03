@@ -1,0 +1,77 @@
+id: M09
+title: Secured protocols — exported keys and decrypted captures in wire bundles
+objective: >
+  Extend wire/ (DESIGN.md 24.21) so a cell of a secured protocol yields both the encrypted capture as seen on
+  the wire and a decrypted view built from keys exported by the peers under test, with checker validity that
+  proves security was on and that decrypted checkers depend on real decryption. Protocol-neutral: wire/ only
+  handles environment variables, files and an experiment-supplied decrypt command.
+depends_on: [M08]
+inputs: [DESIGN.md 24.20, DESIGN.md 24.21]
+deliverables:
+  - "manifest: peer env and secrets, experiment decrypt command, checker observes_decrypted, negative asserts: encrypted, placeholders {secrets} and {decrypted}"
+  - "runner: secrets dir before peers start, secret-file check after stop, decrypt step, wrong-secrets negatives re-running decrypt"
+  - "bundle: secrets/, capture-decrypted.pcapng, decrypt.log in SHA256SUMS; verdict.json contains_secrets"
+  - "example experiment: TLS echo on loopback (Python ssl, SSLKEYLOGFILE), decrypt via editcap --inject-secrets"
+interface:
+  exit_codes: "as M08 (run: 0 PASS, 1 FAIL, 3 BLOCKED, 4 ENV, 2 usage or manifest error)"
+  verdict_json: "M08 fields plus contains_secrets: bool"
+acceptance:
+  AC1: >
+    In the TLS example (a client sends a fixed payload over TLS on loopback and exits non-zero unless the echo
+    matches; both peers log secrets via SSLKEYLOGFILE set through env and {secrets}, using a TLS context that
+    honours it or setting keylog_filename from it), with Wireshark's editcap and
+    tshark available, `wire run` exits 0 with verdict PASS and writes: capture.pcap, in which the payload bytes do
+    not occur; secrets/ with non-empty key logs; capture-decrypted.pcapng, in which tshark (no extra options)
+    shows the payload in the decrypted TLS application data; decrypt.log; SHA256SUMS covering all of these; and
+    verdict.json with contains_secrets true.
+  AC2: >
+    A peer that declares a secret file but does not write it (or writes it empty) yields BLOCKED (exit 3) with a
+    reason naming the file; the decrypt step and the checkers do not run.
+  AC3: >
+    A decrypt command that exits non-zero, or exits 0 leaving {decrypted} missing or zero bytes, yields FAIL
+    (exit 1) with reason "decrypt failed"; capture.pcap is still present and listed in SHA256SUMS.
+  AC4: >
+    For an observes_decrypted checker, each negative that replaces "{secrets}/<file>" causes the decrypt step to be
+    re-run with the replacement file into a scratch location and the checker to be run on that output, and each
+    negative that replaces "{decrypted}" runs the checker on the replacement with the real secrets in place; the
+    checker must exit non-zero on both. In the example, an altered client key log and a decrypted view of a
+    different payload each make the decrypted checker fail. Each of these mutant checkers makes the cell FAIL
+    with reason "checker accepts negative: <name>": one that only tests that {decrypted} exists, and one that
+    only inspects the key file in secrets/ and never reads {decrypted}. The scratch re-run never modifies
+    capture-decrypted.pcapng (its SHA-256 is unchanged).
+  AC5: >
+    The example's observes_capture checker passes on the encrypted capture and rejects its "asserts: encrypted"
+    negative (the same echo exchange in cleartext TCP). A raw checker that merely finds the TCP exchange (and so
+    accepts the cleartext capture) makes the cell FAIL with reason "checker accepts negative: <name>".
+  AC6: >
+    Manifest validation exits 2 before any env check, build, start or capture when the experiment declares decrypt
+    and a cell has no observes_decrypted checker; when an observes_decrypted checker lacks either a negative
+    replacing a "{secrets}/<file>" or a negative replacing "{decrypted}"; when such a file is not declared in any
+    peer's secrets; when a secret name is absolute, contains a path separator, is "." or "..", does not match
+    [A-Za-z0-9._-]+, or is declared twice (for example secrets: [../capture.pcap]); when observes_decrypted is not a
+    boolean; when decrypt is present but its command is missing or empty; when a cell's observes_capture
+    checker has no negative marked "asserts: encrypted"; when "asserts" has a value other than encrypted; when
+    {decrypted} is used by a checker but the experiment declares no decrypt; or when a peer's env is not a mapping
+    of strings.
+  AC7: >
+    A peer's env variables are present in that peer's process environment (with {secrets} expanded to the absolute
+    bundle path) and absent from other peers' processes; {secrets} exists before any peer's build or start.
+  AC8: >
+    A declared secret that exists after the run only as a symlink yields BLOCKED. env.json records the decrypt
+    executable's absolute path and SHA-256; replacing that executable at the same path with different bytes,
+    without changing the manifest or secrets, changes the recorded SHA-256. verdict.json contains_secrets is true if and only if secrets/ contains at least one file; verify-bundle exits 1
+    when any file under secrets/, capture-decrypted.pcapng or decrypt.log is modified, removed or added unlisted.
+  AC9: >
+    An experiment that declares neither secrets nor decrypt behaves as in M08: the M08 acceptance suite passes
+    unchanged, and its bundles contain no secrets/, capture-decrypted.pcapng or decrypt.log, with
+    contains_secrets false.
+  AC10: >
+    wire/ contains no protocol knowledge for this feature: no module under wire/ references editcap, tshark,
+    SSLKEYLOGFILE, tls, dtls, quic or oscore (case-insensitive, checked over the source text excluding
+    wire/example/), and those names appear only in the example experiment.
+out_of_scope:
+  - protocol-specific decryption or key formats in wire/
+  - rewriting packets into cleartext packets (an experiment may supply such a decrypt command)
+  - Group OSCORE decoding; OSCORE context dumps for the ~/Code/CoAP experiment (an experiment change, not M09)
+  - enforcing that keys are test keys (declared rule, DESIGN 24.21)
+size_hint: M

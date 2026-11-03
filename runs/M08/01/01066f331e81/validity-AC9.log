@@ -1,0 +1,51 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac9_env_json_records_integrity_and_dirty_blocked
+# commit: 1182a5d65f8c93e80eff7410d4ab0d8733f48bfa + mutant:ac9_ignore_dirty_experiment_dir
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_ac9_env_json_records_integrity_and_dirty_blocked _____________
+
+    def test_ac9_env_json_records_integrity_and_dirty_blocked() -> None:
+        """AC9: env.json records git state, binary hashes, dirty experiment dir yields BLOCKED, hash changes on build change."""
+        with tempfile.TemporaryDirectory() as t:
+            tmp = Path(t)
+            manifest = make_exp(tmp)
+            out = tmp / "out"
+            r = wire("run", str(manifest), "--cell", "echo", "--out", str(out))
+            assert r.returncode == 0
+            bundle = out / "echo"
+            env = json.loads((bundle / "env.json").read_text(encoding="utf-8"))
+    
+            # Verify manifest sha256
+            actual_manifest_sha = hashlib.sha256(manifest.read_bytes()).hexdigest()
+            assert env["manifest_sha256"] == actual_manifest_sha
+    
+            # Verify experiment git state
+            assert env["experiment"]["dirty"] is False
+            assert len(env["experiment"]["commit"]) == 40
+    
+            # Verify peers git state and binary sha256
+            server_binaries = env["peers"]["echo-server"]["binaries"]
+            assert len(server_binaries) == 1
+            for bin_path_str, expected_hash in server_binaries.items():
+                actual_hash = hashlib.sha256(Path(bin_path_str).read_bytes()).hexdigest()
+                assert actual_hash == expected_hash
+    
+            # Verify checker inputs and negatives are hashed
+            assert "vectors/payload.bin" in env["checker_inputs"]
+            assert "negatives/unrelated.pcap" in env["checker_inputs"]
+            assert "negatives/no_echo.pcap" in env["checker_inputs"]
+    
+            # Dirty experiment directory (untracked file) yields BLOCKED (exit 3)
+            (manifest.parent / "untracked_script.py").write_text("print('dirty')")
+            out_dirty = tmp / "out_dirty"
+            r_dirty = wire("run", str(manifest), "--cell", "echo", "--out", str(out_dirty))
+>           assert r_dirty.returncode == 3
+E           AssertionError: assert 0 == 3
+E            +  where 0 = CompletedProcess(args=['/opt/anaconda3/bin/python3', '-m', 'wire', 'run', '/var/folders/31/7x197zc125z0cvx2x2kqftxm000...s negatives\nbundle: <tmp>', stderr='').returncode
+
+acceptance/M08/test_m08.py:818: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac9_env_json_records_integrity_and_dirty_blocked
+1 failed in 2.98s
+
+# exit: 1

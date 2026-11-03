@@ -1,0 +1,39 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M09/test_m09.py::test_ac10_no_protocol_knowledge_in_wire
+# commit: a32516cc1d3ccc696ab94f9f1da31ff63236a2a4 + mutant:ac10_protocol_leak
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________________ test_ac10_no_protocol_knowledge_in_wire ____________________
+
+    def test_ac10_no_protocol_knowledge_in_wire() -> None:
+        """AC10: wire/ contains no protocol knowledge (no references to editcap, tshark, SSLKEYLOGFILE, etc.)."""
+        terms = ("editcap", "tshark", "sslkeylogfile", "tls", "dtls", "quic", "oscore")
+        wire_dir = REPO_ROOT / "wire"
+        assert wire_dir.is_dir()
+    
+        # Exclude wire/example/
+        for py_file in wire_dir.rglob("*.py"):
+            if "example" in py_file.relative_to(wire_dir).parts:
+                continue
+            content = py_file.read_text(encoding="utf-8").lower()
+            for term in terms:
+>               assert term not in content, (
+                    f"wire module {py_file} contains protocol term {term!r}"
+                )
+E               AssertionError: wire module <tmp> contains protocol term 'tls'
+E               assert 'tls' not in '"""the expe...> 0\n    )\n'
+E                 
+E                 'tls' is contained here:
+E                   d 24.21): tls decryption support."""
+E                 ?           +++
+E                   
+E                   import os
+E                   import shutil...
+E                 
+E                 ...Full output truncated (37 lines hidden), use '-vv' to show
+
+acceptance/M09/test_m09.py:710: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M09/test_m09.py::test_ac10_no_protocol_knowledge_in_wire - ...
+1 failed in 0.05s
+
+# exit: 1

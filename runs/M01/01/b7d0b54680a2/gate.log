@@ -1,0 +1,6 @@
+# gate: manual orchestrator (24.3)
+# commit: b7d0b54680a242499b4f0f837e70b7cbdb8da74e
+# base: f8fdbbca7632527f93732f1ec0a9594dfeb9118a
+clean worktree: yes
+build.md committed: yes
+ownership violations: ['milestones/M01/state.yaml']

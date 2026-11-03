@@ -1,0 +1,98 @@
+id: M01
+title: Orchestrator minimum — path ownership, captured test runs, state transitions
+objective: >
+  A deterministic CLI (./orch) that alone applies milestone state transitions,
+  rejects agent runs that change paths outside their role's ownership, executes
+  builder and acceptance tests itself with captured logs, and validates verdicts
+  before applying them. Invoking agent CLIs (dispatch) is out of scope (DESIGN.md 24.3).
+depends_on: []
+inputs: [DESIGN.md 24.1-24.15, workflow.yaml, AGENTS.md]
+deliverables:
+  - orchestrator package and ./orch CLI with --json status for tooling
+  - milestones/<id>/state.yaml and metrics/<id>.yaml written only by the orchestrator, every change a git commit
+  - one git worktree per build attempt and per verification
+  - role prompt rendering from AGENTS.md with recorded template version
+interface:
+  # Python 3.12 + PyYAML + stdlib; tests with pytest. ./orch works from the main worktree or
+  # any attempt worktree (it locates the main repository via git). Exit 0 = done, 1 = refused
+  # (precondition failed; reason on stderr), 2 = usage error. State commands require the main
+  # worktree to be on branch main and serialise on a lock.
+  commands:
+    - ./orch status [--json]
+    - ./orch show <id> [--json]                       # spec, state and spec_hash (sha256 of spec.yaml)
+    - ./orch refresh                                  # apply automatic transitions (READY, DRAFT, STALE)
+    - ./orch review <id> <reviews/file>               # committed file naming <id>, spec_hash[:12], "Outcome: APPROVED"
+    - ./orch approve <id> <approvals/file>            # committed file naming G2, <id>, spec_hash[:12], "Decision: APPROVED"
+    - ./orch start-build <id> --agent A --family F [--model M] --session S
+    - ./orch finish-build <id>
+    - ./orch start-verify <id> --agent A --family F [--model M] --session S
+    - ./orch run-tests <id> --name N [--at built|base|mutant:<name>] [--paths P ...]
+    - ./orch finish-verify <id>
+    - ./orch integrate <id>
+    - ./orch invalidate <id> --to STALE|DRAFT --reason R
+    - ./orch unblock <id> --note N
+    - ./orch resolve <id> --outcome REWORK|DRAFT|BLOCKED --classification C --note N [--approval approvals/file]
+  state_yaml:
+    # milestones/<id>/state.yaml, minimum fields
+    status: one of DRAFT REVIEWED APPROVED READY BUILDING BUILT VERIFYING VERIFIED COMPLETE REWORK BLOCKED ESCALATED STALE
+    criteria_version: sha256 of spec.yaml recorded at approve, null otherwise
+    attempt: current attempt number
+    attempts: >
+      list of {n, base, branch, worktree, builder, built, verify_branch, verify_worktree, verifier,
+      verdict}; worktree paths relative to the repository root (under .worktrees/); builder and
+      verifier are {agent, family, model, session}
+    escalations: list of {id, reason, gate, classification, outcome}
+    history: list of {at, from, to, note}
+  runs: runs/<id>/<NN>/<sha12>/<name>.log, header lines "# command:", "# commit:", "# exit:"
+  branches: m/<id>/a<NN>-build and m/<id>/a<NN>-verify
+acceptance:
+  AC1: >
+    finish-build rejects (exit non-zero, milestone stays BUILDING) a builder commit range that
+    changes any path outside the builder ownership rules, including acceptance/**,
+    milestones/<id>/spec.yaml and milestones/<id>/state.yaml.
+  AC2: >
+    finish-build moves BUILDING to BUILT only when the build worktree is clean, the attempt's
+    build.md is committed, and the builder test command passes in an orchestrator run; a failing
+    builder test leaves the milestone BUILDING.
+  AC3: >
+    Every orchestrator test execution writes a log under runs/<id>/<attempt>/<sha12>/ recording
+    the command, the commit and the exit status.
+  AC4: >
+    Commands whose preconditions do not hold (for example finish-verify on a READY milestone,
+    start-build while a dependency is not COMPLETE, start-verify with the builder's session id,
+    approve with an approval that does not name the current spec hash) exit non-zero and leave
+    state.yaml unchanged.
+  AC5: >
+    finish-verify rejects verification.yaml when a criterion id is missing, commit or
+    criteria_version does not match the state, a cited run log does not exist, or a PASS
+    criterion has no validity entry; the milestone stays VERIFYING.
+  AC6: >
+    A PASS verdict yields VERIFIED only if the orchestrator's own run of acceptance/<id> at the
+    verified commit passes and every validity case fails at the base commit or under its mutant;
+    otherwise the milestone stays VERIFYING.
+  AC7: >
+    A FAIL verdict yields REWORK below max_attempts, and ESCALATED with a new escalations/ENNN.md
+    at max_attempts; resolving that escalation is refused without a committed G4 approval.
+  AC8: >
+    Changing an approved spec.yaml returns that milestone to DRAFT; invalidating a COMPLETE
+    milestone makes its COMPLETE dependents STALE.
+  AC9: >
+    integrate merges a VERIFIED milestone into main and runs its acceptance suite plus every
+    COMPLETE milestone's suite on the merge commit; on failure main is restored to the pre-merge
+    commit and the milestone goes to REWORK.
+  AC10: >
+    State survives process exit: a fresh `./orch status --json` reproduces it, and every
+    state.yaml change is a git commit authored "orchestrator".
+  AC11: >
+    Two milestones built concurrently in separate worktrees can be finished concurrently without
+    corrupting either state.yaml.
+out_of_scope:
+  - invoking agent CLIs (dispatch), provider fallback
+  - budget enforcement (BASELINE.md OD5)
+  - audit command, resumption drill, metrics evaluation (24.17)
+  - TUI (BASELINE.md OD1)
+size_hint: L
+size_justification: >
+  Transitions, ownership, test execution and verdict validation are one enforcement point;
+  until M01 is COMPLETE a human must perform all of it by hand (24.3), so splitting would
+  multiply manual orchestration rather than reduce risk.

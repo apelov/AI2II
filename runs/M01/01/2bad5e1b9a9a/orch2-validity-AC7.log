@@ -1,0 +1,17 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01/test_m01.py::test_ac7_fail_verdict_rework_escalation_g4
+# commit: 2bad5e1b9a9a
+F
+=== FAIL: acceptance/M01/test_m01.py::test_ac7_fail_verdict_rework_escalation_g4 ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 248, in wrapper
+    fn(r)
+  File "<tmp>", line 568, in test_ac7_fail_verdict_rework_escalation_g4
+    assert repo.orch(*args)[0] == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+1 failed
+
+# exit: 1

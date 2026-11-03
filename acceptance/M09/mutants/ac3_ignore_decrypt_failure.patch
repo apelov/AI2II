@@ -1,0 +1,15 @@
+diff --git a/wire/run.py b/wire/run.py
+index e9e91e4..50e8360 100644
+--- a/wire/run.py
++++ b/wire/run.py
+@@ -183,8 +183,8 @@ class _Cell:
+         blocked = self.check_secrets()
+         if blocked:
+             return "BLOCKED", blocked
+-        if m.decrypt is not None and not self.decrypt_step():
+-            return "FAIL", "decrypt failed"
++        if m.decrypt is not None:
++            self.decrypt_step()
+         return self.run_checkers()
+ 
+     def check_secrets(self) -> str | None:

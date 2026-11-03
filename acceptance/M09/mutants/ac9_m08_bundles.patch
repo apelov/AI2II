@@ -1,0 +1,14 @@
+diff --git a/wire/run.py b/wire/run.py
+index e9e91e4..4e83613 100644
+--- a/wire/run.py
++++ b/wire/run.py
+@@ -122,8 +122,7 @@ class _Cell:
+             m, self.cell["checkers"], self.bundle / "inputs"
+         )
+ 
+-        if m.secured:
+-            self.secrets.mkdir()
++        self.secrets.mkdir()
+ 
+         for name in self.peer_names:
+             p = m.peers[name]

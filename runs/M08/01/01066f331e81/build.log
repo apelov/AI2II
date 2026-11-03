@@ -1,0 +1,6 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider tests
+# commit: 01066f331e8173fb3d88cc7cce1ee2b7d9e118ad
+...............................................                          [100%]
+47 passed in 117.99s (0:01:57)
+
+# exit: 0

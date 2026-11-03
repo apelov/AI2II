@@ -1,0 +1,9 @@
+--- a/wire/run.py
++++ b/wire/run.py
+@@ -288,5 +288,5 @@
+     try:
+         verdict, reason = c.execute()
+     except KeyboardInterrupt:
+-        verdict, reason = "FAIL", "interrupted"
++        verdict, reason = "PASS", "interrupted"
+     finally:

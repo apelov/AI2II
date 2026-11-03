@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.worktrees/
+.ai2ii-state/
+.state.lock
+*.lock
+agents.local.yaml
+build/
+dist/
+
+# wire evidence bundles keep their build logs (DESIGN 24.20)
+!runs/wire/**/build/

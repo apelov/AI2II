@@ -1,0 +1,45 @@
+# Committed workflow policy (DESIGN.md 24.15). The local role -> command
+# mapping (agents.local.yaml) arrives with agent dispatch, after M01.
+roles:
+  architect: { tier: high }
+  reviewer:  { tier: high }
+  builder:   { tier: standard }
+  verifier:  { tier: standard }   # raise to high for security-sensitive milestones via spec.yaml
+
+diversity:
+  verifier_differs_from_builder: family     # SHOULD; family | model | session
+  reviewer_differs_from_architect: family
+
+limits:
+  max_attempts: 3                # build/verify cycles per milestone before escalation
+  max_escalations: 2             # per milestone before mandatory human decision
+  design_review_rounds: 3
+  budget_per_milestone_usd: 25   # recorded, not enforced: cost measurement is open (BASELINE.md OD5)
+
+# Run by the orchestrator inside a worktree; each must exit non-zero on failure.
+commands:
+  builder_tests: python3 -m pytest -q -p no:cacheprovider tests
+  acceptance: python3 -m pytest -q -p no:cacheprovider {paths}
+
+# Paths an agent role may change in its commits. First matching rule wins;
+# unmatched paths are denied. {id} = milestone, {n} = attempt (01, 02, ...).
+ownership:
+  builder:
+    - allow: milestones/{id}/attempts/{n}/build.md
+    - deny: milestones/**
+    - deny: acceptance/**
+    - deny: runs/**
+    - deny: metrics/**
+    - deny: reviews/**
+    - deny: approvals/**
+    - deny: escalations/**
+    - deny: DESIGN.md
+    - deny: BASELINE.md
+    - deny: AGENTS.md
+    - deny: workflow.yaml
+    - deny: orch
+    - deny: scripts/**
+    - allow: "**"
+  verifier:
+    - allow: acceptance/{id}/**
+    - allow: milestones/{id}/attempts/{n}/verification.yaml

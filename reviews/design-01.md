@@ -1,0 +1,29 @@
+# Design review 01
+
+Scope: DESIGN.md 24.3 (governing/subject paragraph), 24.20, and the E011/E012 proposals. Reviewed independently of the architect.
+
+## Governing and subject orchestrator; E011
+
+The ownership deadlock is factual: `orchestrator.py` and `orch` are in `PROTECTED_PATTERNS` (`orchestrator.py:114-128`), checked before workflow rules (`orchestrator.py:1298-1317`), and both are denied again by `workflow.yaml`'s builder rules. A builder cannot deliver changes to those files under the current gate. Keeping policy and the mechanical gate protected while letting a builder implement the CLI is a sound goal.
+
+The proposed boundary is not yet sound in the implementation it describes. `orchestrator.py:1078-1085` copies every allowed builder file from the attempt worktree into the invoking workspace immediately after the ownership check. Once E011 allows `orchestrator.py` and `orch`, a dispatch invoked from main can replace the *governing* executable before verification or integration. `REPO_ROOT = Path(__file__).parent.resolve()` and `_repo_root()` (`orchestrator.py:35,134-136`) do not locate main; `run_tests` uses that root and can run there (`orchestrator.py:1523-1603`). Thus “always main's `./orch`” is presently an assertion, not an enforced boundary. Require the dispatcher to leave builder code isolated until verified integration; pin the controller executable and policy to main independently of the candidate commit; test that a builder change to `orchestrator.py` cannot change the controller used for ownership, tests, or verdicts. The E011 regression test should include this case, not only allow/deny paths.
+
+The paragraph also says the protected rules are exactly `DESIGN.md`, `BASELINE.md`, `AGENTS.md`, `workflow.yaml`, `scripts/**`, and `.git/**`, but the current built-in list additionally protects `.worktrees/**`, `pytest.ini`, `conftest.py`, and `pyproject.toml`. E011 should say whether these remain protected. Its claim that no spec changes means M01 stays BUILDING overlooks DESIGN.md 24.13, which requires an affected-milestone list and G3 approval when DESIGN.md changes. E011 needs an explicit M01 impact decision under that rule.
+
+## Wire evidence; 24.20
+
+The existing `cmd_interop` really does run implementation test commands sequentially (`orchestrator.py:3270-3315,3375-3408`); it does not exchange packets. Replacing it serves the stated interop-evidence goal. The separate `wire/` package and no-import boundary are appropriate; there is no protocol-specific decoding in the proposed generic runner.
+
+The largest assumption is that a nonempty capture plus zero exit codes and one negative test per checker constitutes interop evidence. As written, unrelated packets can make a capture nonempty, while peers and a checker that accept any input can all exit zero. A checker can fail on one deliberately corrupted file yet ignore every relevant packet or vector. Require the experiment to declare the expected wire observation and bind PASS to a checker that verifies it in the captured bytes; verify early with the UDP example by replacing its capture with unrelated UDP traffic and by removing one direction of the exchange. Both must fail. A negative vector test is useful but does not prove that the checker checks the claimed property.
+
+The manifest adds `family` to peers and checkers to enforce independence, but self-declared family strings do not establish who authored or controls a checker. The design needs a provenance rule or should describe this as a declared-policy check rather than proof of independent verification. `tcpdump` capture privileges and interface selection are an environmental dependency; a loopback example alone cannot establish the stated Hackathon topology assumption. An early trial on the intended interface/topology would resolve that risk.
+
+The proposal's `cells` and `checkers` abstractions serve the 26-cell use case and independent evidence checks. No component in the proposed runner is visibly without a goal, but the claim that `tcpdump` is available to every participant is unsupported by the reviewed artifacts. The manifest's `capture.filter` is also an untrusted experiment choice: a permissive filter could admit unrelated traffic unless the checker validates the specific flow.
+
+## E012 factual audit and proposal
+
+The cited M01 implementation gaps are substantially supported: `compute_criteria_version` hashes a selected normalized mapping and omits `interface` and `size_hint` (`orchestrator.py:1221-1235`), while DESIGN.md 24.6 specifies the file hash; the transition from REVIEWED to APPROVED checks only that acceptance exists (`orchestrator.py:2210-2217`); the CLI has `transition`, `dispatch`, and `verify` but no `integrate` handler (`orchestrator.py:3786-3810`). `save_state` writes a local YAML file and an external digest, with no git commit (`orchestrator.py:1189-1219`). These observations support an implementation escalation, not a claim of completed M01 acceptance; E012 correctly labels them inspection-only.
+
+E012's attempt-02 proposal needs a provenance and gate correction. Assigning the hand-built tree to an attempt whose builder family is unknown cannot meet the recorded builder/verifier independence check, and writing `build.md` after the fact does not demonstrate that attempt's builder worktree, commit range, or clean build. The M01 bootstrap clause permits a human to perform orchestration duties, but does not waive M01's approved acceptance criteria. The proposal should state precisely how attempt 02 will be tested and recorded without presenting retroactive metadata as ordinary builder evidence. Its suggested human log review is a useful safeguard, but it cannot replace the required orchestrator-run validity and acceptance results.
+
+Outcome: CHANGES_REQUESTED

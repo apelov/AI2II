@@ -1,0 +1,52 @@
+experiment: tls-echo-loopback
+env_checks:
+  - name: python3
+    command: python3 -c "import sys"
+  - name: editcap
+    command: editcap --version
+  - name: tshark
+    command: tshark --version
+peers:
+  - name: tls-server
+    path: .
+    family: example-server
+    under_test: true
+    env: {SSLKEYLOGFILE: "{secrets}/server.keys"}
+    secrets: [server.keys]
+    start: python3 src/tls_server.py --port 47443
+    ready: {command: "python3 ready.py {bundle}/tls-server.log", timeout_s: 10}
+  - name: tls-client
+    path: .
+    family: example-client
+    under_test: true
+    env: {SSLKEYLOGFILE: "{secrets}/client.keys"}
+    secrets: [client.keys]
+    start: python3 src/tls_client.py --port 47443 --payload-file vectors/payload.bin
+capture: {interface: lo0, filter: tcp port 47443}
+decrypt:
+  command: editcap -F pcapng --inject-secrets tls,{secrets}/client.keys {capture} {decrypted}
+cells:
+  - name: echo
+    server: tls-server
+    clients: [tls-client]
+    checkers: [observes-tls, decrypted-payload]
+    timeout_s: 30
+checkers:
+  - name: observes-tls
+    family: example-checker
+    observes_capture: true
+    command: python3 check_capture.py --port 47443 {capture}
+    inputs: []
+    negatives:
+      - {input: negatives/unrelated.pcap, replaces: "{capture}"}
+      - {input: negatives/one_direction.pcap, replaces: "{capture}"}
+      - {input: negatives/cleartext.pcap, replaces: "{capture}", asserts: encrypted}
+  - name: decrypted-payload
+    family: example-checker
+    observes_capture: false
+    observes_decrypted: true
+    command: python3 check_decrypted.py --port 47443 {decrypted} {inputs}/vectors/payload.bin
+    inputs: [vectors/payload.bin]
+    negatives:
+      - {input: negatives/client.keys.altered, replaces: "{secrets}/client.keys"}
+      - {input: negatives/other_payload.pcapng, replaces: "{decrypted}"}

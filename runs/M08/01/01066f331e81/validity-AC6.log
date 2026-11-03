@@ -1,0 +1,40 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac6_build_failure_missing_binary_capture_failure_blocked
+# commit: 1182a5d65f8c93e80eff7410d4ab0d8733f48bfa + mutant:ac6_skip_unlink_stale_binary
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________ test_ac6_build_failure_missing_binary_capture_failure_blocked _________
+
+    def test_ac6_build_failure_missing_binary_capture_failure_blocked() -> None:
+        """AC6: BLOCKED (exit 3) on failed build (stale binary deleted), missing binary, bad iface, zero packets."""
+        with tempfile.TemporaryDirectory() as t:
+            tmp = Path(t)
+    
+            # 1. Peer build fails, stale binary exists beforehand (stale binary is deleted and absent afterwards)
+            m_bld = make_exp(
+                tmp / "exp_bld",
+                edits=[
+                    (
+                        "build: python3 build.py",
+                        'build: python3 -c "import sys; sys.exit(9)"',
+                    )
+                ],
+            )
+            stale_bin = m_bld.parent / "bin" / "udp_echo_server.py"
+            stale_bin.parent.mkdir(exist_ok=True)
+            stale_bin.write_text("stale pre-existing binary")
+            out_bld = tmp / "out_bld"
+            r_bld = wire("run", str(m_bld), "--cell", "echo", "--out", str(out_bld))
+            assert r_bld.returncode == 3
+            assert verdict_of(out_bld)["verdict"] == "BLOCKED"
+>           assert not stale_bin.exists(), "stale binary was not deleted before build"
+E           AssertionError: stale binary was not deleted before build
+E           assert not True
+E            +  where True = exists()
+E            +    where exists = PosixPath('/var/folders/31/7x197zc125z0cvx2x2kqftxm0000gn/T/tmp9adrd6x3/exp_bld/exp/bin/udp_echo_server.py').exists
+
+acceptance/M08/test_m08.py:535: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac6_build_failure_missing_binary_capture_failure_blocked
+1 failed in 0.40s
+
+# exit: 1

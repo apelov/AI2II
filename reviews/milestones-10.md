@@ -1,0 +1,9 @@
+# Milestone review 10
+
+Reviewed `milestones/M09/spec.yaml`, SHA-256 **680a0eb1f0ff** from `./orch show M09`, against review milestones-09 and DESIGN.md 24.21. I did not write the spec. This is a specification review; I did not run M09 or claim verified implementation.
+
+The three milestones-09 findings are resolved. AC4 now requires a wrong-secrets rerun into scratch output and a separate replacement of `{decrypted}` with the real secrets retained. It explicitly rejects both an existence-only checker and a key-file-only checker, and checks that the canonical output's hash stays fixed. AC6 rejects malformed `observes_decrypted`, missing or empty decrypt commands, duplicate or unsafe secret filenames, and missing negative types before work starts. AC8 tests the decrypt executable's recorded path and hash, including a same-path byte change, and rejects symlinked secret output. AC3 also covers a zero-byte decrypted artifact. AC1 specifies how the TLS peers actually enable key logging and requires tshark to show the payload in decrypted TLS application data without extra options.
+
+M09 depends only on COMPLETE M08, which depends on M01; the DAG is acyclic. M09 can be built and verified independently of later milestones. Its `M` size requires no `L` justification. The deliverables and all ten criteria trace to DESIGN.md 24.21 and its M08 base. The criteria state observable pass and failure outcomes, including malformed declarations, missing files, wrong keys, altered views, cleartext capture, tampering and M08 compatibility. AC1's readable TLS output plus AC4 and AC5's checker validity prevent an apparent success from satisfying the spec without the claimed encrypted and decrypted views. Reviewers must still judge whether each experiment's negative is a meaningful different exchange; this is an explicit design responsibility, not a missing M09 criterion.
+
+Outcome: APPROVED

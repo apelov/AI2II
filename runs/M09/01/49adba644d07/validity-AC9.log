@@ -1,0 +1,81 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M09/test_m09.py::test_ac9_m08_compatibility_and_unsecured_bundle
+# commit: 99df8f5d6d3cdc8f3d0af624cd400c7496030349 + mutant:ac9_m08_bundles
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_ac9_m08_compatibility_and_unsecured_bundle ________________
+
+    def test_ac9_m08_compatibility_and_unsecured_bundle() -> None:
+        """AC9: Unsecured experiment has no secrets/, capture-decrypted.pcapng, decrypt.log; contains_secrets is false; M08 passes."""
+        need_tools()
+        # 1. Run M08 acceptance suite unchanged
+        m08_res = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                "-p",
+                "no:cacheprovider",
+                "acceptance/M08/test_m08.py",
+            ],
+            cwd=REPO_ROOT,
+            env=ENV,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert m08_res.returncode == 0, (
+            f"M08 acceptance suite failed:\n{m08_res.stdout}\n{m08_res.stderr}"
+        )
+    
+        # 2. Run un-secured experiment (udp_echo example)
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            exp = tmp / "exp"
+            shutil.copytree(M08_EXAMPLE, exp, ignore=shutil.ignore_patterns("__pycache__"))
+            port = free_port()
+            text = (exp / "interop.yaml").read_text(encoding="utf-8")
+            text = text.replace("47443", str(port)).replace("lo0", IFACE)
+            (exp / "interop.yaml").write_text(text, encoding="utf-8")
+            subprocess.run(
+                [
+                    sys.executable,
+                    "make_negatives.py",
+                    "--port",
+                    str(port),
+                    "--out",
+                    "negatives",
+                ],
+                cwd=exp,
+                env=ENV,
+                check=True,
+            )
+            subprocess.run(["git", "init", "-q"], cwd=exp, check=True)
+            subprocess.run(["git", "add", "-A"], cwd=exp, check=True)
+            subprocess.run([*GIT, "commit", "-qm", "initial"], cwd=exp, check=True)
+    
+            out = tmp / "out"
+            res = wire(
+                "run", str(exp / "interop.yaml"), "--cell", "echo", "--out", str(out)
+            )
+            assert res.returncode == 0, (
+                f"unsecured run failed ({res.returncode}): {res.stderr}\n{res.stdout}"
+            )
+            bundle = out / "echo"
+            v_data = json.loads((bundle / "verdict.json").read_text(encoding="utf-8"))
+            assert v_data["verdict"] == "PASS"
+            assert v_data["contains_secrets"] is False
+>           assert not (bundle / "secrets").exists(), (
+                "unsecured bundle must not contain secrets/"
+            )
+E           AssertionError: unsecured bundle must not contain secrets/
+E           assert not True
+E            +  where True = exists()
+E            +    where exists = (PosixPath('/var/folders/31/7x197zc125z0cvx2x2kqftxm0000gn/T/tmpywwe3_45/out/echo') / 'secrets').exists
+
+acceptance/M09/test_m09.py:665: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M09/test_m09.py::test_ac9_m08_compatibility_and_unsecured_bundle
+1 failed in 30.33s
+
+# exit: 1

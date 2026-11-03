@@ -1,0 +1,105 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac4_peer_failure_timeout_sigint_and_cleanup
+# commit: 1182a5d65f8c93e80eff7410d4ab0d8733f48bfa + mutant:ac4_sigint_ignore_interrupted
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_ac4_peer_failure_timeout_sigint_and_cleanup _______________
+
+    def test_ac4_peer_failure_timeout_sigint_and_cleanup() -> None:
+        """AC4: Server non-response yields FAIL; hanging peer with child terminated within timeout+10s; SIGINT yields interrupted."""
+        with tempfile.TemporaryDirectory() as t:
+            tmp = Path(t)
+    
+            # 1. Server that never answers yields verdict FAIL (exit 1)
+            mute_server = (
+                (EXAMPLE / "src" / "udp_echo_server.py")
+                .read_text(encoding="utf-8")
+                .replace("sock.sendto(data, peer)", "pass")
+            )
+            m_mute = make_exp(
+                tmp / "exp_mute",
+                edits=[("--payload-file", "--timeout 1.0 --payload-file")],
+                files={"src/udp_echo_server.py": mute_server},
+            )
+            out_mute = tmp / "out_mute"
+            r_mute = wire("run", str(m_mute), "--cell", "echo", "--out", str(out_mute))
+            assert r_mute.returncode == 1
+            assert verdict_of(out_mute)["verdict"] == "FAIL"
+    
+            # 2. Hanging peer that spawned child process is terminated within cell timeout + 10s
+            pids_file = tmp / "pids.txt"
+            m_hang = make_exp(
+                tmp / "exp_hang",
+                edits=[
+                    ("timeout_s: 20", "timeout_s: 2"),
+                    ("python3 bin/udp_echo_client.py --port", "python3 hang.py --port"),
+                ],
+                files={"hang.py": spawner_script(pids_file)},
+            )
+            out_hang = tmp / "out_hang"
+            t_start = time.monotonic()
+            r_hang = wire("run", str(m_hang), "--cell", "echo", "--out", str(out_hang))
+            duration = time.monotonic() - t_start
+            assert duration < 2 + 10, (
+                f"hanging cell took {duration}s, expected < 12s (timeout+10s)"
+            )
+            assert r_hang.returncode == 1
+            v_hang = verdict_of(out_hang)
+            assert v_hang["verdict"] == "FAIL"
+            assert v_hang["peers"]["echo-client"]["timed_out"] is True
+            # Verify no process from child or parent survives
+            child_pids = read_pids(pids_file)
+            assert not any(alive(p) for p in child_pids), f"pids still alive: {child_pids}"
+            env_hang = json.loads(
+                (out_hang / "echo" / "env.json").read_text(encoding="utf-8")
+            )
+            assert not alive(env_hang["capture_pid"]), "capture pid still alive"
+    
+            # 3. SIGINT delivered mid-cell yields FAIL with reason 'interrupted' and cleans up
+            sig_pids = tmp / "sig_pids.txt"
+            m_sig = make_exp(
+                tmp / "exp_sig",
+                edits=[
+                    ("timeout_s: 20", "timeout_s: 60"),
+                    ("python3 bin/udp_echo_client.py --port", "python3 hang.py --port"),
+                ],
+                files={"hang.py": spawner_script(sig_pids)},
+            )
+            out_sig = tmp / "out_sig"
+            proc = subprocess.Popen(
+                [
+                    sys.executable,
+                    "-m",
+                    "wire",
+                    "run",
+                    str(m_sig),
+                    "--cell",
+                    "echo",
+                    "--out",
+                    str(out_sig),
+                ],
+                cwd=REPO_ROOT,
+                env=ENV,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline and not sig_pids.exists():
+                time.sleep(0.05)
+            assert sig_pids.exists(), "hanging process did not start"
+            time.sleep(0.3)
+            proc.send_signal(signal.SIGINT)
+            proc_out, _ = proc.communicate(timeout=15)
+>           assert proc.returncode == 1, proc_out
+E           AssertionError: PASS: echo: interrupted
+E             bundle: <tmp>
+E             
+E           assert 0 == 1
+E            +  where 0 = <Popen: returncode: 0 args: ['/opt/anaconda3/bin/python3', '-m', 'wire', 'ru...>.returncode
+
+acceptance/M08/test_m08.py:440: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac4_peer_failure_timeout_sigint_and_cleanup
+1 failed in 6.94s
+
+# exit: 1

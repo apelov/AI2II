@@ -1,0 +1,15 @@
+id: M07
+title: Role prompt versioning and deterministic context rendering
+objective: AGENTS.md prompts versioned; orchestrator records template version per attempt
+depends_on: [M01, M02]
+inputs: [AGENTS.md with version headers]
+deliverables:
+  - "AGENTS.md with versioned templates per role (e.g., --- version: 1 ---)"
+  - "Orchestrator renders prompt with milestone-specific values, records version in metrics"
+  - "Context determinism: same inputs -> same rendered prompt (no hidden state)"
+acceptance:
+  AC1: "AGENTS.md templates have version; orchestrator reads and records version"
+  AC2: "Re-rendering with same inputs produces byte-identical prompt file"
+  AC3: "Different versions produce different prompts; metrics show which used"
+out_of_scope: [Automated prompt optimization, A/B testing]
+size_hint: S

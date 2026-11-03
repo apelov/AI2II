@@ -1,0 +1,6 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08
+# commit: 1b2bdc59bbf5a98a97c33de12dde3d3d1af1d613
+...........                                                              [100%]
+11 passed in 27.76s
+
+# exit: 0

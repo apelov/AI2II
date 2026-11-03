@@ -1,0 +1,89 @@
+id: M08
+title: Wire evidence bundles and checked test vectors
+objective: >
+  A protocol-neutral runner (package wire/, DESIGN.md 24.20) that executes two-peer interop cells
+  concurrently under packet capture and produces a self-verifying evidence bundle with exactly one
+  verdict per cell, plus a validity check proving that every evidence checker can fail. It replaces
+  the sequential `orch interop` command.
+depends_on: [M01]
+inputs: [DESIGN.md 24.20, DESIGN.md 24.18, DESIGN.md 24.9]
+deliverables:
+  - wire/ package (stdlib + PyYAML only); no import of orchestrator.py and none from it
+  - "CLI: python3 -m wire run <interop.yaml> --cell <name> --out <dir>"
+  - "CLI: python3 -m wire verify-bundle <dir>  (re-checks SHA256SUMS)"
+  - "CLI: python3 -m wire validate-checkers <interop.yaml>"
+  - removal of cmd_interop / run_interop_test / generate_interop_report / build_interop_matrix from orchestrator.py
+  - a self-contained example experiment (two-peer UDP echo on loopback) used by tests
+interface:
+  exit_codes: "run: 0 PASS, 1 FAIL, 3 BLOCKED, 4 ENV, 2 usage or manifest error; verify-bundle and validate-checkers: 0 ok, 1 not ok"
+  verdict_json: "{cell, verdict: PASS|FAIL|BLOCKED|ENV, reason, peers: {name: {exit, timed_out, binaries: {path: sha256}, commit, dirty}}, checkers: {name: exit}, started_at, ended_at}"
+acceptance:
+  AC1: >
+    In the example experiment (UDP echo on loopback; the client exits non-zero unless it receives the echo of the
+    exact payload it sent), when the capture interface is capturable by the user, `wire run` exits 0 and writes:
+    capture.pcap with UDP packets in both directions between the two peers' addresses and ports; one log per peer;
+    env.json; one log per checker; verdict.json with verdict PASS; and SHA256SUMS. The example's observes_capture
+    checker asserts the request and the echo in the captured bytes.
+  AC2: >
+    `wire validate-checkers` on the example exits 1 and names the checker if the observes_capture checker exits 0 on
+    either of its two capture negatives: (a) a non-empty capture of unrelated UDP traffic, and (b) the example
+    exchange with the echo direction removed. Replacing the example checker with one that accepts any non-empty pcap
+    makes validate-checkers exit 1. With the real checker it exits 0.
+  AC3: >
+    `wire verify-bundle` exits 0 on an untouched bundle. It exits 1 when: one byte of any listed file changes; a
+    listed file is deleted; an unlisted file is added; SHA256SUMS has a duplicate or malformed entry; or
+    verdict.json's verdict is not one of PASS, FAIL, BLOCKED, ENV.
+  AC4: >
+    A server that never answers yields verdict FAIL (exit 1). So does a peer that hangs after spawning a child
+    process, within the cell timeout plus 10 s. A SIGINT delivered to `wire run` mid-cell yields verdict FAIL with
+    reason "interrupted". In all three cases no process of any peer's process group, and no capture process,
+    remains afterwards.
+  AC5: >
+    A failing env check yields verdict ENV (exit 4), including when it is not the first env check. No peer build,
+    start or capture runs (checked with a marker file the build command would create). A peer that fails while
+    all env checks passed never yields ENV.
+  AC6: >
+    Verdict BLOCKED (exit 3), never PASS, when: a peer build exits non-zero, even if a declared binary from an
+    earlier build exists beforehand (the stale binary is deleted before the build and is absent afterwards); a
+    declared binary is missing after a build that exits 0; the capture cannot start (nonexistent interface); or the
+    capture records zero packets.
+  AC7: >
+    A checker exiting non-zero turns an otherwise passing cell into FAIL. With an always-pass observes_capture checker
+    substituted and unrelated non-empty UDP traffic as the only traffic, invoking only `wire run` (never
+    validate-checkers) yields FAIL with reason naming that checker, never PASS. In a two-cell manifest where only
+    cell A's expected exchange occurs while cell B runs, cell B is never PASS, because cell B's own observes_capture
+    checker rejects cell A's exchange. In a cell with two checkers, where the observes_capture checker passes and
+    rejects all its negatives but the vector checker exits 0 on one of its declared negatives, `wire run` yields FAIL
+    with reason naming the vector checker.
+  AC8: >
+    Manifest validation exits 2 before any env check, build, start or capture for: a checker family equal to an
+    under_test peer's family; a missing or empty family on any peer or checker; duplicate peer, cell or checker
+    names; a cell naming an undefined peer or checker; an observes_capture value that is not a boolean; a cell with
+    no observes_capture checker among its own checkers; a checker with no negatives; an observes_capture checker with fewer
+    than two capture negatives; or a negative whose input does not exist or whose replaces is neither one of the
+    checker's inputs nor {capture}; a cell with no server, with no client, with a client equal to its server, or
+    naming the same client twice.
+  AC9: >
+    env.json records, for each peer: path; git commit and dirty flag; build exit status; and, for each declared
+    binary, its path and the SHA-256 of the bytes present after this run's build. It also records the manifest's
+    SHA-256, the experiment directory's git commit and dirty flag, and the SHA-256 of every checker input and negative.
+    If the experiment directory has any uncommitted or untracked change (for example, an edited checker script that
+    is not a declared input), the verdict is BLOCKED (exit 3) and never PASS. Each recorded hash equals the
+    hash of the file the peer's start command executed. A build that changes the binary's bytes changes the
+    recorded hash.
+  AC10: >
+    Checker inputs (test vectors) are copied into the bundle's inputs/ and covered by SHA256SUMS. The example's
+    vector checker exits 0 on the example vector, which matches the payload observed in capture.pcap, and exits
+    non-zero on that vector with one byte flipped.
+  AC11: >
+    `./orch interop` no longer exists (usage error, exit 2). No module under wire/ imports orchestrator, and
+    orchestrator.py imports nothing from wire/, checked by walking the AST of every file for Import, ImportFrom,
+    __import__ and importlib.import_module calls.
+out_of_scope:
+  - pcap decoding or any protocol-specific logic in wire/
+  - Wireshark dissector authoring; protocol state-machine checking (candidate Hackathon experiments)
+  - multi-host or container topologies
+  - wrapping the OSCORE matrix (an experiment that uses M08, not part of it)
+  - automated dispatch (M02). M08 is built and verified through M01's manual lifecycle (start-build, finish-build,
+    start-verify, run-tests, finish-verify, integrate), which reads attempt records from the attempt branch.
+size_hint: M

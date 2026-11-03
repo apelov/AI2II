@@ -1,0 +1,20 @@
+# gate: manual orchestrator (24.3), main ./orch at 5b9d152
+# verifier commit: bf7f92fe64d592c9d36236a8153edd2b835c5170 (agy, google, gemini-3.8-flash-high); implementation commit: ebfa283626c0
+verification.yaml: verdict PASS, criteria_version matches state (4846a491a8c1...), commit matches built, all 11 ids, validity for every PASS
+verifier ownership: PASSED (./orch check-ownership verifier M01 01)
+cited run logs: all exist under main runs/
+orchestrator acceptance run at verifier HEAD: PASSED, 11 passed (runs/M01/01/bf7f92fe64d5/final-acc-subject.log)
+  note: runs/M01/01/bf7f92fe64d5/final-acc.log is INVALID evidence: invoked from main, main's E011 run-tests
+  overlaid main's working-tree acceptance/ (old weakened M01 tests) onto the checkout. Defect in main's
+  bootstrap run-tests; the candidate replaces it.
+orchestrator validity re-runs: all 11 fail as required on assertions (runs/M01/01/*/orch-validity-AC*.log;
+  AC1 at base 67a47956cef9, AC2-AC11 under committed mutants)
+orchestrator review findings (not in verifier's findings: []):
+  - minor: AC11 validity mutant does not remove the lock; it writes a corrupt state.yaml when M03 is
+    finished, so it shows corruption is detected, not that concurrency is safe.
+  - minor: AC9 mutant only skips REWORK; restore of main on failure is not separately falsified.
+  - minor: acceptance/M01/test_m01.py fails ruff (F841 unused 'h' at line 388; format), so
+    scripts/verify_gate.sh FAILS at the verified commit; must be fixed before integration.
+  - one test per criterion; claim_audit restates results without independent analysis of build.md limitations.
+pending human decisions: E012 point 5 (human reads logs before VERIFIED); architect sign-off on build.md design deviations.
+status: stays VERIFYING

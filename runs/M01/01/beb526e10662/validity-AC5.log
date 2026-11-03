@@ -1,0 +1,17 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M01/test_m01.py::test_ac5_finish_verify_rejects_malformed_verdicts
+# commit: beb526e10662
+F
+=== FAIL: acceptance/M01/test_m01.py::test_ac5_finish_verify_rejects_malformed_verdicts ===
+Traceback (most recent call last):
+  File "src/_shims/pytest.py", line 153, in main
+    fn()
+  File "<tmp>", line 236, in wrapper
+    fn(r)
+  File "<tmp>", line 431, in test_ac5_finish_verify_rejects_malformed_verdicts
+    assert rc == 1 and needle in err, f"Expected {needle} in error, got {err}"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Expected AC2 in error, got 
+
+1 failed
+
+# exit: 1

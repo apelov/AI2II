@@ -1,0 +1,58 @@
+status: COMPLETE
+criteria_version: 680a0eb1f0ff1fa94aae4bfcb780e246083e65c1cd50ca4d20a3876afe1eb73d
+attempt: 1
+attempts:
+- n: 1
+  base: c74bd65407b80908a4d5b4d3d19749decf372975
+  branch: m/M09/a01-build
+  worktree: .worktrees/M09-a01-build
+  builder:
+    agent: claude-sonnet
+    family: anthropic
+    model: claude-sonnet-5-5
+    session: claude-sonnet-M09-a01
+  built: 49adba644d071c1795cb800c136cf196af57d240
+  verify_branch: m/M09/a01-verify
+  verify_worktree: .worktrees/M09-a01-verify
+  verifier:
+    agent: agy
+    family: google
+    model: gemini-3.8-flash-high
+    session: agy-M09-a01-verify
+  verdict: PASS
+escalations: []
+history:
+- at: '2026-11-03T13:17:38.025792Z'
+  from: DRAFT
+  to: REVIEWED
+  note: reviewed by reviews/milestones-10.md
+- at: '2026-11-03T13:18:39.022070Z'
+  from: REVIEWED
+  to: APPROVED
+  note: G2 approvals/G2-M09.md; criteria_version 680a0eb1f0ff
+- at: '2026-11-03T13:18:39.263742Z'
+  from: APPROVED
+  to: READY
+  note: every dependency is COMPLETE
+- at: '2026-11-03T13:18:39.627894Z'
+  from: READY
+  to: BUILDING
+  note: attempt 01 started by claude-sonnet
+- at: '2026-11-03T13:37:52.229508Z'
+  from: BUILDING
+  to: BUILT
+  note: built at 49adba644d07 (build.log)
+- at: '2026-11-03T13:38:16.732940Z'
+  from: BUILT
+  to: VERIFYING
+  note: attempt 01 verification started by agy
+- at: '2026-11-03T14:16:08.822362Z'
+  from: VERIFYING
+  to: VERIFIED
+  note: PASS confirmed at a32516cc1d3c
+- at: '2026-11-03T14:18:49.522599Z'
+  from: VERIFIED
+  to: COMPLETE
+  note: merged m/M09/a01-verify; suites passed
+reviewed_spec_hash: 680a0eb1f0ff1fa94aae4bfcb780e246083e65c1cd50ca4d20a3876afe1eb73d
+milestone: M09

@@ -1,0 +1,30 @@
+{
+  "cell": "N1",
+  "verdict": "PASS",
+  "reason": "all peers exited 0, capture non-empty, every checker passed and rejected its negatives",
+  "peers": {
+    "c-server": {
+      "exit": -15,
+      "timed_out": false,
+      "binaries": {
+        "/Users/apelov/Code/CoAP/coap_server": "50054f533397f754a32a1d611b54b3708c63450d5f2e0cc360d0f0cd874c9a9e"
+      },
+      "commit": "288cd2752efab2ecfe306897a2ec49fbdb41c628",
+      "dirty": true
+    },
+    "c-clients": {
+      "exit": 0,
+      "timed_out": false,
+      "binaries": {
+        "/Users/apelov/Code/CoAP/coap_client": "dc12c36b46278a8b24a59e743791bdadf3e04d0a4de8b6b76cb5247babf9fbf7"
+      },
+      "commit": "288cd2752efab2ecfe306897a2ec49fbdb41c628",
+      "dirty": true
+    }
+  },
+  "checkers": {
+    "observes-n1": 0
+  },
+  "started_at": "2026-11-03T12:43:04Z",
+  "ended_at": "2026-11-03T12:43:52Z"
+}

@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 5827719..2732927 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -3092,7 +3092,7 @@ def cmd_integrate(args: Any) -> int:
+                 problem = f"acceptance/{s} fails on merge commit {merge[:12]} (exit {rc}, see {_rel(log)})"
+                 break
+     if problem:
+-        _git("reset", "--hard", "-q", pre)
++        pass
+         _set_status(st, "REWORK", f"integration failed: {problem}")
+         save_state(m, st, extra=extra)
+         raise Refused(f"integration failed, main restored to {pre[:12]}: {problem}")

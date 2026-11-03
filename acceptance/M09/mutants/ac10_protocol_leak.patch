@@ -1,0 +1,10 @@
+diff --git a/wire/decrypt.py b/wire/decrypt.py
+index 79f358d..f555674 100644
+--- a/wire/decrypt.py
++++ b/wire/decrypt.py
+@@ -1,4 +1,4 @@
+-"""The experiment-supplied decrypt step (DESIGN.md 24.21): wire/ runs the command, it never decodes anything."""
++"""The experiment-supplied decrypt step (DESIGN.md 24.21): TLS decryption support."""
+ 
+ import os
+ import shutil

@@ -1,0 +1,13 @@
+diff --git a/wire/run.py b/wire/run.py
+index 41101fb..35006f2 100644
+--- a/wire/run.py
++++ b/wire/run.py
+@@ -123,7 +123,7 @@ class _Cell:
+         for name in self.peer_names:
+             p = m.peers[name]
+             for b in p["binaries"]:
+-                (p["path"] / b).unlink(missing_ok=True)
++                pass  # (p["path"] / b).unlink(missing_ok=True)
+             pcommit, pdirty = git_state(p["path"])
+             self.peers[name].update(commit=pcommit, dirty=pdirty)
+             self.env["peers"][name] = {

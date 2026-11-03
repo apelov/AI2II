@@ -1,0 +1,13 @@
+# command: python3 -m pytest -q -p no:cacheprovider tests
+# commit: b7d0b54680a242499b4f0f837e70b7cbdb8da74e
+# exit: 0
+
+.................                                                        [100%]
+=============================== warnings summary ===============================
+tests/test_orchestrator.py::TestInvalidateStale::test_invalidate_to_draft
+tests/test_orchestrator.py::TestInvalidateStale::test_invalidate_to_draft
+  .worktrees/M01-a01-build/orchestrator/models.py:197: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    at=datetime.utcnow().isoformat() + "Z",
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+17 passed, 2 warnings in 1.46s

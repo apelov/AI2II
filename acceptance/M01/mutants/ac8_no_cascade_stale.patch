@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 5827719..034ee1b 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -2553,7 +2553,7 @@ def cmd_invalidate(args: Any) -> int:
+             raise Refused(f"{m} is already DRAFT")
+         _to_draft(m, st, args.reason)
+     print(f"{m}: -> {args.to}")
+-    _cascade_stale(m)
++    # _cascade_stale(m)
+     return 0
+ 
+ 

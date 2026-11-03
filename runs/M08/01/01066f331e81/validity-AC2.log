@@ -1,0 +1,34 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08/test_m08.py::test_ac2_validate_checkers_falsification
+# commit: 1182a5d65f8c93e80eff7410d4ab0d8733f48bfa + mutant:ac2_ignore_checker_negatives
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________________ test_ac2_validate_checkers_falsification ___________________
+
+    def test_ac2_validate_checkers_falsification() -> None:
+        """AC2: validate-checkers exits 1 when checker accepts negatives; exits 0 on valid checker."""
+        with tempfile.TemporaryDirectory() as t:
+            tmp = Path(t)
+            # Real checker on example exits 0
+            m = make_exp(tmp)
+            r0 = wire("validate-checkers", str(m))
+            assert r0.returncode == 0, (
+                f"validate-checkers on valid example failed: {r0.stdout}"
+            )
+    
+            # Substituted checker accepting any non-empty pcap exits 1 naming the checker
+            always = make_exp(
+                tmp / "exp_always",
+                edits=[("check_capture.py --port", "accept_any.py --port")],
+                files={"accept_any.py": "import sys\nsys.exit(0)\n"},
+            )
+            r1 = wire("validate-checkers", str(always))
+>           assert r1.returncode == 1
+E           AssertionError: assert 0 == 1
+E            +  where 0 = CompletedProcess(args=['/opt/anaconda3/bin/python3', '-m', 'wire', 'validate-checkers', '/var/folders/31/7x197zc125z0c...rn7/exp_always/exp/interop.yaml'], returncode=0, stdout='OK: every checker rejects its capture negatives\n', stderr='').returncode
+
+acceptance/M08/test_m08.py:241: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M08/test_m08.py::test_ac2_validate_checkers_falsification
+1 failed in 0.56s
+
+# exit: 1

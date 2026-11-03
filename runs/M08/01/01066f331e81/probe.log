@@ -1,0 +1,8 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M08
+# commit: 01066f331e8173fb3d88cc7cce1ee2b7d9e118ad
+ERROR: file or directory not found: acceptance/M08
+
+
+no tests ran in 0.00s
+
+# exit: 4

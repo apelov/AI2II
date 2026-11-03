@@ -1,0 +1,160 @@
+milestone: M08
+attempt: 1
+commit: 01066f331e8173fb3d88cc7cce1ee2b7d9e118ad
+criteria_version: 24a2eb3309e6278d19037be57f92330b3e2643869ee9edbfcfb31871a6a7201a
+verifier:
+  role: verifier
+  family: google
+  model: gemini-3.8-flash-high
+verdict: PASS
+
+acceptance:
+  AC1:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac1_example_pass_and_bundle_contents
+    run: runs/M08/01/01066f331e81/acc.log
+  AC2:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac2_validate_checkers_falsification
+    run: runs/M08/01/01066f331e81/acc.log
+  AC3:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac3_verify_bundle_tamper_detection
+    run: runs/M08/01/01066f331e81/acc.log
+  AC4:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac4_peer_failure_timeout_sigint_and_cleanup
+    run: runs/M08/01/01066f331e81/acc.log
+  AC5:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac5_failing_env_checks_yield_env
+    run: runs/M08/01/01066f331e81/acc.log
+  AC6:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac6_build_failure_missing_binary_capture_failure_blocked
+    run: runs/M08/01/01066f331e81/acc.log
+  AC7:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac7_checkers_failing_or_accepting_negatives_yield_fail
+    run: runs/M08/01/01066f331e81/acc.log
+  AC8:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac8_manifest_validation_rejects_malformed_inputs
+    run: runs/M08/01/01066f331e81/acc.log
+  AC9:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac9_env_json_records_integrity_and_dirty_blocked
+    run: runs/M08/01/01066f331e81/acc.log
+  AC10:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac10_vector_checking_and_bundle_inputs
+    run: runs/M08/01/01066f331e81/acc.log
+  AC11:
+    result: PASS
+    tests:
+      - acceptance/M08/test_m08.py::test_ac11_orch_interop_removed_and_no_cross_imports
+    run: runs/M08/01/01066f331e81/acc.log
+
+validity:
+  AC1:
+    fails_on: base
+    run: runs/M08/01/01066f331e81/validity-AC1.log
+  AC2:
+    fails_on: mutant:ac2_ignore_checker_negatives
+    run: runs/M08/01/01066f331e81/validity-AC2.log
+  AC3:
+    fails_on: mutant:ac3_skip_hash_verify
+    run: runs/M08/01/01066f331e81/validity-AC3.log
+  AC4:
+    fails_on: mutant:ac4_sigint_ignore_interrupted
+    run: runs/M08/01/01066f331e81/validity-AC4.log
+  AC5:
+    fails_on: mutant:ac5_skip_env_check_abort
+    run: runs/M08/01/01066f331e81/validity-AC5.log
+  AC6:
+    fails_on: mutant:ac6_skip_unlink_stale_binary
+    run: runs/M08/01/01066f331e81/validity-AC6.log
+  AC7:
+    fails_on: mutant:ac7_skip_accepted_negatives_check
+    run: runs/M08/01/01066f331e81/validity-AC7.log
+  AC8:
+    fails_on: mutant:ac8_bypass_manifest_error
+    run: runs/M08/01/01066f331e81/validity-AC8.log
+  AC9:
+    fails_on: mutant:ac9_ignore_dirty_experiment_dir
+    run: runs/M08/01/01066f331e81/validity-AC9.log
+  AC10:
+    fails_on: mutant:ac10_skip_stage_inputs
+    run: runs/M08/01/01066f331e81/validity-AC10.log
+  AC11:
+    fails_on: base
+    run: runs/M08/01/01066f331e81/validity-AC11.log
+
+findings: []
+
+claim_audit:
+  - claim: "AC1: Example UDP echo experiment exits 0, writes capture.pcap with UDP packets in both directions, logs per peer and checker, env.json, verdict.json with PASS, SHA256SUMS."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "Executed wire run on loopback example. Capture inspection proves bidirectional UDP datagrams between peer ports. Bundle verifies clean under wire verify-bundle. Falsified at base in validity-AC1.log."
+  - claim: "AC2: wire validate-checkers exits 1 naming checker if observes_capture checker exits 0 on capture negatives; exits 0 on valid checker."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "Tested both negative (a) (unrelated UDP traffic) and negative (b) (exchange with echo removed), plus accept-any checker. All exit 1 naming observes-echo. Real checker exits 0. Falsified under mutant ac2_ignore_checker_negatives in validity-AC2.log."
+  - claim: "AC3: wire verify-bundle exits 0 on untouched bundle, exits 1 on single-byte change, deletion, addition, duplicate or malformed SHA256SUMS, or bad verdict."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "Mutations tested against capture.pcap, echo-client.log, unlisted extra files, duplicate sums lines, malformed entries, and invalid verdict strings. All exit 1. Falsified under mutant ac3_skip_hash_verify in validity-AC3.log."
+  - claim: "AC4: Server non-response yields FAIL; hanging peer with child process cleaned up within timeout+10s; SIGINT yields FAIL 'interrupted' with full process group cleanup."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "Mute server yields FAIL. Peer spawning background child sleep process terminates in under 12s (2s timeout + 10s grace) leaving no surviving child or parent PIDs. SIGINT yields FAIL 'interrupted' and cleans up all processes. Falsified under mutant ac4_sigint_ignore_interrupted in validity-AC4.log."
+  - claim: "AC5: Failing env check yields ENV (exit 4), including when not the first env check. No peer build, start, or capture runs."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "Second env check failing yields exit 4 and ENV verdict. Marker files confirm build and start commands never ran. Capture was not started. Peer failure after passing env checks yields FAIL, never ENV. Falsified under mutant ac5_skip_env_check_abort in validity-AC5.log."
+  - claim: "AC6: Verdict BLOCKED (exit 3) on failed peer build (stale binary deleted), missing declared binary after 0 exit, bad capture interface, or zero packets captured."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "All 4 blocked conditions independently verified. Pre-existing stale binary deleted before build and absent after build failure. Falsified under mutant ac6_skip_unlink_stale_binary in validity-AC6.log."
+  - claim: "AC7: Checker failure turns cell into FAIL; always-pass checker with unrelated traffic yields FAIL via negative checks; two-cell manifest rejects mismatched traffic; vector checker negative failure yields FAIL."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "Verified normal checker failure, wire run standalone rejecting checker accepting negative, two-cell manifest isolation where cell B rejects cell A traffic, and vector checker accepting flipped negative yielding FAIL. Falsified under mutant ac7_skip_accepted_negatives_check in validity-AC7.log."
+  - claim: "AC8: Manifest validation exits 2 before any execution for 14 error cases."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "Exhaustively verified all 14 invalid manifest conditions including checker family equality, missing family, duplicates, undefined peers/checkers, non-boolean observes_capture, missing negatives, fewer than 2 capture negatives, bad negative replaces, and client/server identity violations. Env marker confirms zero execution prior to validation. Falsified under mutant ac8_bypass_manifest_error in validity-AC8.log."
+  - claim: "AC9: env.json records git state, peer commits, dirty flags, build exit, binary sha256; dirty experiment dir yields BLOCKED; binary hash tracks build changes."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "Verified env.json contains SHA-256 for manifest, binary files, checker inputs and negatives. Untracked file in experiment dir yields BLOCKED (exit 3). Source changes modify recorded binary hash on rebuild. Falsified under mutant ac9_ignore_dirty_experiment_dir in validity-AC9.log."
+  - claim: "AC10: Checker inputs copied into bundle inputs/ and covered by SHA256SUMS; vector checker passes on example vector and fails on flipped byte."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "payload.bin staged under inputs/vectors/ and hashed in SHA256SUMS. Vector checker directly executed against capture: exits 0 on valid vector, exits non-zero on payload with flipped byte. Falsified under mutant ac10_skip_stage_inputs in validity-AC10.log."
+  - claim: "AC11: ./orch interop removed (exit 2) and zero cross-imports between wire/ and orchestrator.py."
+    holds: true
+    evidence: runs/M08/01/01066f331e81/acc.log
+    analysis: "orchestrator.py interop invocation exits 2. Full AST traversal of all .py files in wire/ confirms no orchestrator imports; orchestrator.py AST confirms no wire imports. Falsified at base in validity-AC11.log."
+  - claim: "Could not verify items in build.md"
+    holds: true
+    analysis: "Builder noted: Linux platform testing, non-capturable user execution, and end-to-end two-cell test. The two-cell test was implemented and verified end-to-end in test_ac7. Loopback capture is supported across platforms and linktypes (DLT_NULL and DLT_EN10MB)."
+  - claim: "Design deviations in build.md"
+    holds: true
+    analysis: "Builder noted additive capture.log, build logs, and env-check logs. These improve diagnostic traceability without conflicting with DESIGN.md 24.20 bundle format."
+  - claim: "Known limitations in build.md"
+    holds: true
+    analysis: "Noted behaviors (clean git requirement for experiment directory, server terminated via SIGTERM recording -15, empty/absent bundle destination required) match DESIGN.md 24.20 specification."
+
+required_fixes: []

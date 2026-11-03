@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 5827719..0e322cb 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -2138,7 +2138,7 @@ def commit_paths(paths: list[Path], message: str) -> None:
+     _git("add", "-A", "--", *rels)
+     if not _git("status", "--porcelain", "--", *rels).strip():
+         return
+-    ident = f"{ORCH_NAME} <{ORCH_EMAIL}>"
++    ident = "builder <builder@invalid>"
+     _git(
+         *("-c", f"user.name={ORCH_NAME}", "-c", f"user.email={ORCH_EMAIL}"),
+         *("-c", "commit.gpgsign=false"),

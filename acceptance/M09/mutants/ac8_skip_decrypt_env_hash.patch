@@ -1,0 +1,13 @@
+diff --git a/wire/run.py b/wire/run.py
+index e9e91e4..98e951c 100644
+--- a/wire/run.py
++++ b/wire/run.py
+@@ -205,7 +205,7 @@ class _Cell:
+         self.env["decrypt"] = {
+             "command": command,
+             "executable": str(exe) if exe else None,
+-            "sha256": bundle_mod.sha256_file(exe) if exe else None,
++            "sha256": None,
+         }
+         return decrypt.run(
+             self.m,
