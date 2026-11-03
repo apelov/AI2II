@@ -1,0 +1,49 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac7_metadata_and_retained_candidate_identity
+# commit: 1bf000544cdd36c6d4d097a77c12a7b49b2fb584 + mutant:ac7_fallback_retains_first_identity
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_ac7_metadata_and_retained_candidate_identity _______________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+e = <test_m02.Env object at 0x102535f70>
+
+    @with_env
+    def test_ac7_metadata_and_retained_candidate_identity(e: Env) -> None:
+        """AC7: Metadata records all candidates tried; retained candidate identity is saved in state.yaml."""
+        e.repo.approve("M01")
+    
+        e.agents(
+            "builder",
+            ("b_fail", "fa", "fail", "", {}),
+            ("b_win", "fb", "build", "", {}),
+        )
+        e.ok("dispatch", "M01", "builder")
+    
+        meta = e.meta("builder", "M01", 1)
+        assert len(meta["candidates"]) == 2
+        assert meta["candidates"][0]["agent"] == "b_fail"
+        assert meta["candidates"][0]["result"] == "failure"
+        assert meta["candidates"][1]["agent"] == "b_win"
+        assert meta["candidates"][1]["result"] == "success"
+    
+        # State records the retained candidate
+        a = e.attempt("M01")
+>       assert a["builder"]["agent"] == "b_win"
+E       AssertionError: assert 'b_fail' == 'b_win'
+E         
+E         - b_win
+E         + b_fail
+
+acceptance/M02/test_m02.py:694: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac7_metadata_and_retained_candidate_identity
+1 failed in 1.44s
+
+# exit: 1

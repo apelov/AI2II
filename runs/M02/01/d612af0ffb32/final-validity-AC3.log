@@ -1,0 +1,33 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac3_no_record_committed_fails_dispatch
+# commit: 447d24998e00276afdfc324991daf55e0a69e934 + mutant:ac3_ignore_missing_record
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________ test_ac3_no_record_committed_fails_dispatch __________________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+e = <test_m02.Env object at 0x102910c20>
+
+    @with_env
+    def test_ac3_no_record_committed_fails_dispatch(e: Env) -> None:
+        """AC3: Agent exit 0 without committed record causes non-zero exit and result 'no-record'."""
+        e.repo.approve("M01")
+    
+        # Builder exits 0 without writing build.md
+        e.agents("builder", ("b1", "fa", "silent", "", {}))
+        rc, _, _ = e.orch("dispatch", "M01", "builder")
+>       assert rc != 0
+E       assert 0 != 0
+
+acceptance/M02/test_m02.py:490: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac3_no_record_committed_fails_dispatch
+1 failed in 1.47s
+
+# exit: 1

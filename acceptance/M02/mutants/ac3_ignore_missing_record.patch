@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 8b8b9ef..3bcd880 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -766,7 +766,7 @@ def _run_candidate(
+             rc, result = 124, "timeout"
+         f.write(f"\n# exit: {rc}\n")
+         head = _git("rev-parse", "HEAD", cwd=wt, check=False).strip()
+-        if result == "success" and not (
++        if False and result == "success" and not (
+             head
+             and head
+             == _git("rev-parse", f"refs/heads/{branch}", cwd=wt, check=False).strip()

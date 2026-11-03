@@ -42,7 +42,7 @@ Prepared for the **IETF 127 Hackathon, San Francisco, 14–15 November 2026** (c
 | M01 Orchestrator minimum | COMPLETE |
 | M08 Wire evidence bundles and checked test vectors | COMPLETE |
 | M09 Secured protocols: exported keys and decrypted captures | COMPLETE |
-| M02 Agent dispatch | READY (not built; agents are launched by hand through the lifecycle commands) |
+| M02 Agent dispatch (sandboxed agents, fallback, prompt rendering) | COMPLETE |
 | M03–M07 | DRAFT |
 
 Each COMPLETE milestone was built by one model family and verified by another, with

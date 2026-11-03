@@ -1,0 +1,44 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac9_concurrent_builder_dispatches
+# commit: e989cc269607286f7fd01b7f40263ce6acc72c9e
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________________ test_ac9_concurrent_builder_dispatches ____________________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+e = <test_m02.Env object at 0x111334890>
+
+    @with_env
+    def test_ac9_concurrent_builder_dispatches(e: Env) -> None:
+        """AC9: Two concurrent builder dispatches use separate worktrees and leave both state.yaml files valid."""
+        e.repo.approve("M01")
+        e.repo.approve("M03")
+        e.agents("builder", ("b1", "fa", "build", "", {}))
+    
+        p1 = e.popen("dispatch", "M01", "builder")
+        p3 = e.popen("dispatch", "M03", "builder")
+    
+        out1, err1 = p1.communicate()
+        out3, err3 = p3.communicate()
+    
+>       assert p1.returncode == 0, f"M01 dispatch failed: {out1}\n{err1}"
+E       AssertionError: M01 dispatch failed: Dispatching builder (b1) for M01 attempt 01 in <tmp> (prompt v1)
+E         Agent b1 exited with code 1
+E         Dispatch failed: all configured agents for builder failed (last exit code 1)
+E         
+E         
+E       assert 1 == 0
+E        +  where 1 = <Popen: returncode: 1 args: ['/opt/anaconda3/bin/python3', '/private/var/fol...>.returncode
+
+acceptance/M02/test_m02.py:896: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac9_concurrent_builder_dispatches - A...
+1 failed in 1.54s
+
+# exit: 1

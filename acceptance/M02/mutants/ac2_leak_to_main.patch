@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 8b8b9ef..a031b09 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -855,6 +855,8 @@ def cmd_dispatch(args: Any) -> int:
+             )
+         print(f"{m}: {role} candidate {name}: {result}")
+         if result == "success":
++            (_repo_root() / record).parent.mkdir(parents=True, exist_ok=True)
++            shutil.copy2(wt / record, _repo_root() / record)
+             print(
+                 f"{m}: attempt {_nn(n)} ready for finish-{'build' if role == 'builder' else 'verify'}"
+             )

@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 8b8b9ef..e6f221d 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -832,7 +832,7 @@ def cmd_dispatch(args: Any) -> int:
+         )  # fmt: skip
+ 
+     for idx, (name, info) in enumerate(candidates):
+-        if idx:
++        if False and idx:
+             ident = _identity(name, info)
+             with _main_lock():
+                 _set_identity(m, role, ident)

@@ -1,0 +1,54 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac5_process_group_cleanup_and_worktree_reset
+# commit: 1bf000544cdd36c6d4d097a77c12a7b49b2fb584 + mutant:ac5_no_kill_group
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_ac5_process_group_cleanup_and_worktree_reset _______________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+e = <test_m02.Env object at 0x106cc9940>
+
+    @with_env
+    def test_ac5_process_group_cleanup_and_worktree_reset(e: Env) -> None:
+        """AC5: Candidate failure terminates process group, resets worktree to base; delayed writer killed."""
+        e.repo.approve("M01")
+        bg_file = e.tmp / "bg_writer.txt"
+    
+        # Candidate 1 commits marker, creates untracked file, leaves background writer, fails
+        # Candidate 2 builds clean
+        e.agents(
+            "builder",
+            ("b1", "fa", "marker_fail", str(bg_file), {}),
+            ("b2", "fb", "build", "", {}),
+        )
+        e.ok("dispatch", "M01", "builder")
+    
+        wt = e.repo.worktree("M01", "build")
+        # Worktree clean of marker.txt and untracked.txt
+        assert not (wt / "marker.txt").exists()
+        assert not (wt / "untracked.txt").exists()
+        commit_log = e.repo.git("log", "--format=%s", cwd=wt).splitlines()
+        assert "marker" not in commit_log
+    
+        # Background child must be killed
+        size_before = bg_file.stat().st_size if bg_file.exists() else 0
+        time.sleep(0.5)
+        size_after = bg_file.stat().st_size if bg_file.exists() else 0
+>       assert size_before == size_after, (
+            "Background writer continued writing after candidate exited"
+        )
+E       AssertionError: Background writer continued writing after candidate exited
+E       assert 10 == 18
+
+acceptance/M02/test_m02.py:602: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac5_process_group_cleanup_and_worktree_reset
+1 failed in 2.23s
+
+# exit: 1

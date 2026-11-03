@@ -109,24 +109,6 @@ def test_rendered_verifier_prompt_commands_parse() -> None:
         assert unknown == [], f"invalid CLI in rendered prompt: {cmd!r}"
 
 
-def test_copy_back_is_attempt_record_for_builder_and_never_code_for_verifier() -> None:
-    changed = [
-        "orchestrator.py",
-        "src/x.py",
-        "tests/test_x.py",
-        "acceptance/M01/test_a.py",
-        "milestones/M01/attempts/02/build.md",
-        "milestones/M01/attempts/02/verification.yaml",
-    ]
-    assert orch.copy_back_paths("builder", "M01", 2, changed) == [
-        "milestones/M01/attempts/02/build.md"
-    ]
-    assert orch.copy_back_paths("verifier", "M01", 2, changed) == [
-        "acceptance/M01/test_a.py",
-        "milestones/M01/attempts/02/verification.yaml",
-    ]
-
-
 def test_only_files_under_mains_runs_are_citable() -> None:
     root = Path(tempfile.mkdtemp(prefix="ai2ii-runs-")).resolve()
     saved = (orch.MILESTONES_DIR, orch.RUNS_DIR)

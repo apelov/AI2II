@@ -1,0 +1,46 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac2_dispatch_leaves_main_clean
+# commit: 447d24998e00276afdfc324991daf55e0a69e934 + mutant:ac2_leak_to_main
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________________ test_ac2_dispatch_leaves_main_clean ______________________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+e = <test_m02.Env object at 0x102777f20>
+
+    @with_env
+    def test_ac2_dispatch_leaves_main_clean(e: Env) -> None:
+        """AC2: Dispatch writes nothing into main's working tree except orchestrator commits of state, metadata, runs."""
+        e.repo.approve("M01")
+        orch_before = (e.repo.root / "orchestrator.py").read_bytes()
+    
+        # Builder modifies orchestrator.py, writes src, tests, build.md
+        e.agents("builder", ("b1", "fa", "build", "touch_orchestrator", {}))
+        head_before = e.repo.git("rev-parse", "HEAD")
+        e.ok("dispatch", "M01", "builder")
+    
+        # Main working tree is clean and orchestrator.py in main is byte-identical
+        assert (e.repo.root / "orchestrator.py").read_bytes() == orch_before
+        assert not (e.repo.root / "src" / "m01.py").exists()
+        assert not (e.repo.root / "tests" / "test_ok.py").exists()
+>       assert not (
+            e.repo.root / "milestones" / "M01" / "attempts" / "01" / "build.md"
+        ).exists()
+E       AssertionError: assert not True
+E        +  where True = exists()
+E        +    where exists = (((((PosixPath('<tmp>') / 'milestones') / 'M01') / 'attempts') / '01') / 'build.md').exists
+E        +      where PosixPath('<tmp>') = <test_m02.Repo object at 0x101a68950>.root
+E        +        where <test_m02.Repo object at 0x101a68950> = <test_m02.Env object at 0x102777f20>.repo
+
+acceptance/M02/test_m02.py:438: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac2_dispatch_leaves_main_clean - Asse...
+1 failed in 1.40s
+
+# exit: 1

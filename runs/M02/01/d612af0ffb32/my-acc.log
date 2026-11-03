@@ -1,0 +1,150 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02
+# commit: 86266da4c834600d36c296466398d00f32f68518
+.......F..                                                               [100%]
+=================================== FAILURES ===================================
+__________________ test_ac8_seatbelt_profile_and_confinement ___________________
+
+    def test_ac8_seatbelt_profile_and_confinement() -> None:
+        """AC8: Seatbelt profile allows only worktree/tmp/git/statedirs; execution strictly denies unauthorized paths."""
+        spec = importlib.util.spec_from_file_location(
+            "orch_mod", REPO_ROOT / "orchestrator.py"
+        )
+        assert spec is not None and spec.loader is not None
+        orch_mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(orch_mod)
+    
+        # 1. Profile structure unit checks
+        tmp_root = Path(tempfile.mkdtemp(prefix="ai2ii-m02-sb-")).resolve()
+        try:
+            wt = tmp_root / "wt"
+            admin = tmp_root / "git_admin"
+            common = tmp_root / "common_git"
+            att_tmp = tmp_root / "att_tmp"
+            for d in (wt, admin, common, att_tmp):
+                d.mkdir(parents=True)
+    
+            profile = orch_mod._build_seatbelt_profile(
+                wt, admin, common, att_tmp, ["/home/user/.state", "/home/user/.state.json*"]
+            )
+    
+            assert profile.index("(deny file-write*)") < profile.index("(allow file-write*")
+            allow_part = profile.split("(allow file-write*", 1)[1].split(
+                "(deny file-read*"
+            )[0]
+    
+            for p in (
+                wt,
+                admin,
+                common / "objects",
+                common / "refs",
+                common / "logs",
+                att_tmp,
+            ):
+                assert f'(subpath "{p}")' in allow_part
+            assert '(subpath "/home/user/.state")' in allow_part
+            assert r'(regex #"^/home/user/\.state\.json[^/]*$")' in allow_part
+    
+            for forbidden in ("/tmp", "/private/tmp", "hooks", "config", str(tmp_root)):
+                assert f'"{forbidden}"' not in allow_part
+        finally:
+            shutil.rmtree(tmp_root, ignore_errors=True)
+    
+        # 2. Live execution confinement under real Seatbelt (stub=False)
+        # Dispatches a fake builder agent (shell script).
+        # MUST FAIL if Seatbelt cannot be applied (nested sandboxes) rather than silently skipping.
+        env = Env(stub=False)
+        outside = Path("/private/tmp") / f"ai2ii-outside-test-{os.getpid()}.txt"
+        try:
+            env.repo.approve("M01")
+            state_dir = env.tmp / "agent_state"
+            state_dir.mkdir()
+    
+            main_root = str(env.repo.root)
+            outside_path = str(outside)
+            state_path = str(state_dir)
+    
+            # Fake builder agent implemented as a shell script
+            agent_sh = env.tmp / "agent_builder.sh"
+            agent_sh.write_text(
+                f"""#!/usr/bin/env bash
+    set -u
+    REC="milestones/M01/attempts/01"
+    mkdir -p "$REC"
+    OUT=""
+    
+    for target in "{main_root}/MAIN.txt" "{main_root}/.git/hooks/pre-commit" "{main_root}/.git/config" "{outside_path}" "{state_path}/ok.txt" "inside.txt"; do
+        if [ "$target" = "{main_root}/.git/config" ]; then
+            if printf "# probe\\n" >> "$target" 2>/dev/null; then
+                OUT="${{OUT}}${{target}} WROTE"$'\n'
+            else
+                OUT="${{OUT}}${{target}} DENIED"$'\n'
+            fi
+        else
+            if printf "probe\\n" > "$target" 2>/dev/null; then
+                OUT="${{OUT}}${{target}} WROTE"$'\n'
+            else
+                OUT="${{OUT}}${{target}} DENIED"$'\n'
+            fi
+        fi
+    done
+    
+    printf "Status: COMPLETE\\n%s" "$OUT" > "$REC/build.md"
+    mkdir -p tests
+    printf "def test_ok():\\n    assert True\\n" > tests/test_ok.py
+    git add -A
+    git commit -q -m "builder report"
+    exit 0
+    """,
+                encoding="utf-8",
+            )
+            agent_sh.chmod(0o755)
+    
+            # Register shell script builder agent with declared state_dirs
+            agents_path = env.repo.root / "agents.local.yaml"
+            cfg = {
+                "agents": {
+                    "sh_builder": {
+                        "family": "test_fam",
+                        "model": "sh_model",
+                        "command": f"bash {agent_sh} {{prompt_file}}",
+                        "state_dirs": [state_path],
+                    }
+                },
+                "assign": {"builder": ["sh_builder"]},
+            }
+            agents_path.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
+            env.repo.commit("configure sh_builder agent")
+    
+            hooks_before = sorted(
+                p.name for p in (env.repo.root / ".git" / "hooks").iterdir()
+            )
+            config_before = (env.repo.root / ".git" / "config").read_bytes()
+    
+            rc, out, err = env.orch("dispatch", "M01", "builder")
+            assert rc == 0, (
+                f"Seatbelt execution failed (nested sandbox or confinement failure): {out}\n{err}"
+            )
+    
+            wt_build = env.repo.worktree("M01", "build")
+            build_md = (
+                wt_build / "milestones" / "M01" / "attempts" / "01" / "build.md"
+            ).read_text(encoding="utf-8")
+            results = dict(
+                line.rsplit(" ", 1) for line in build_md.splitlines() if " " in line
+            )
+    
+            assert results[f"{main_root}/MAIN.txt"] == "DENIED"
+            assert results[f"{main_root}/.git/hooks/pre-commit"] == "DENIED"
+            assert results[f"{main_root}/.git/config"] == "DENIED"
+            assert results[outside_path] == "DENIED"
+            assert results[f"{state_path}/ok.txt"] == "WROTE"
+>           assert results[f"{wt_build}/inside.txt"] == "WROTE"
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: '<tmp>'
+
+acceptance/M02/test_m02.py:862: KeyError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac8_seatbelt_profile_and_confinement
+1 failed, 9 passed in 31.83s
+
+# exit: 1

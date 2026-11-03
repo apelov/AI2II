@@ -1,0 +1,34 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac6_failure_modes_and_empty_candidates
+# commit: 1bf000544cdd36c6d4d097a77c12a7b49b2fb584 + mutant:ac6_no_candidates_starts_build
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________ test_ac6_failure_modes_and_empty_candidates __________________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+e = <test_m02.Env object at 0x107853b00>
+
+    @with_env
+    def test_ac6_failure_modes_and_empty_candidates(e: Env) -> None:
+        """AC6: Failed candidates recorded as failure|timeout|no-record; no candidates refuses before start; all fail stays in BUILDING at base."""
+        e.repo.approve("M01")
+    
+        # 1. No candidate configured refuses before start-build, state unchanged
+        state_before = e.repo.state_bytes("M01")
+        rc, _, err = e.orch("dispatch", "M01", "builder")
+        assert rc != 0
+>       assert "no agent configured" in err
+E       AssertionError: assert 'no agent configured' in 'dispatch failed: every builder candidate failed; M01 stays BUILDING\n'
+
+acceptance/M02/test_m02.py:638: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac6_failure_modes_and_empty_candidates
+1 failed in 1.25s
+
+# exit: 1

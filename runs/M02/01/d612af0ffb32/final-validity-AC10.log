@@ -1,0 +1,54 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac10_dispatch_status_preconditions
+# commit: 447d24998e00276afdfc324991daf55e0a69e934 + mutant:ac10_builder_accepted_from_building
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________________ test_ac10_dispatch_status_preconditions ____________________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+e = <test_m02.Env object at 0x10323c9b0>
+
+    @with_env
+    def test_ac10_dispatch_status_preconditions(e: Env) -> None:
+        """AC10: Dispatch refuses when milestone status does not allow the role."""
+        e.agents("builder", ("b1", "fa", "build", "", {}))
+        e.agents("verifier", ("v1", "fb", "verify", "BLOCKED", {}))
+    
+        # 1. In DRAFT: neither builder nor verifier
+        for role in ("builder", "verifier"):
+            rc, _, _ = e.orch("dispatch", "M01", role)
+            assert rc != 0
+            assert not e.repo.worktree("M01", "build").exists()
+            assert not e.repo.worktree("M01", "verify").exists()
+    
+        # 2. In READY: verifier refused, builder allowed
+        e.repo.approve("M01")
+        before_ready = e.repo.state_bytes("M01")
+        rc, _, err = e.orch("dispatch", "M01", "verifier")
+        assert rc != 0
+        assert "BUILT" in err
+        assert e.repo.state_bytes("M01") == before_ready
+        assert not e.repo.worktree("M01", "verify").exists()
+    
+        # Dispatch builder -> BUILDING
+        e.ok("dispatch", "M01", "builder")
+    
+        # 3. In BUILDING: both builder and verifier refused
+        before_building = e.repo.state_bytes("M01")
+        for role in ("builder", "verifier"):
+            rc, _, _ = e.orch("dispatch", "M01", role)
+>           assert rc != 0
+E           assert 0 != 0
+
+acceptance/M02/test_m02.py:947: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac10_dispatch_status_preconditions - ...
+1 failed in 1.80s
+
+# exit: 1

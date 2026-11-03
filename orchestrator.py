@@ -139,6 +139,17 @@ def _repo_root() -> Path:
     return MILESTONES_DIR.parent.resolve()
 
 
+def _kill_group(pgid: int) -> None:
+    """SIGKILL a process group and wait (bounded) until no member is left."""
+    deadline = time.monotonic() + 2.0
+    while time.monotonic() < deadline:
+        try:
+            os.killpg(pgid, signal.SIGKILL)
+        except OSError:
+            return
+        time.sleep(0.02)
+
+
 def run_process_with_group_timeout(
     cmd: list[str],
     cwd: Path,
@@ -146,7 +157,8 @@ def run_process_with_group_timeout(
     env: dict[str, str] | None = None,
     stdout_handle: Any | None = None,
 ) -> tuple[int, str, str]:
-    """Run subprocess in its own process group and kill the entire group on timeout or interrupt."""
+    """Run subprocess in its own process group; the whole group is killed when it ends
+    (normally, on timeout or on interrupt), so no descendant outlives the call."""
     if stdout_handle is not None:
         proc = subprocess.Popen(
             cmd,
@@ -175,6 +187,8 @@ def run_process_with_group_timeout(
             except OSError:
                 pass
             raise
+        finally:
+            _kill_group(proc.pid)
     else:
         proc = subprocess.Popen(
             cmd,
@@ -203,6 +217,8 @@ def run_process_with_group_timeout(
             except OSError:
                 pass
             raise
+        finally:
+            _kill_group(proc.pid)
 
 
 # === GLOB & AST HELPERS PORTED FROM AGENTWORK ===
@@ -374,101 +390,6 @@ def check_ast_test_weakening(
 # === WORKTREE & SANDBOX MANAGEMENT ===
 
 
-def create_worktree(
-    milestone: str, attempt: int, base_commit: str, role: str = "builder"
-) -> tuple[str, str]:
-    """Create a fresh git worktree for the milestone attempt. Returns (worktree_path, branch_name)."""
-    root = _repo_root()
-    suffix = "" if role == "builder" else f"-{role}"
-    branch_name = f"{milestone.lower()}-attempt-{attempt:02d}{suffix}"
-    worktree_path = WORKTREES_DIR / branch_name
-
-    # Validate base_commit before touching worktrees
-    verify_res = subprocess.run(
-        ["git", "rev-parse", "--verify", f"{base_commit}^{{commit}}"],
-        cwd=root,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if verify_res.returncode != 0:
-        raise RuntimeError(
-            f"Invalid base commit '{base_commit}': {verify_res.stderr.strip()}"
-        )
-
-    if worktree_path.exists():
-        subprocess.run(
-            ["git", "worktree", "remove", "--force", str(worktree_path)],
-            cwd=root,
-            capture_output=True,
-            check=False,
-        )
-        subprocess.run(
-            ["git", "worktree", "prune"], cwd=root, capture_output=True, check=False
-        )
-    subprocess.run(
-        ["git", "branch", "-D", branch_name], cwd=root, capture_output=True, check=False
-    )
-
-    WORKTREES_DIR.mkdir(parents=True, exist_ok=True)
-    result = subprocess.run(
-        ["git", "worktree", "add", "-b", branch_name, str(worktree_path), base_commit],
-        cwd=root,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        if any(
-            err_tok in result.stderr
-            for err_tok in (
-                "Operation not permitted",
-                "Permission denied",
-                "Unable to create",
-            )
-        ):
-            shutil.rmtree(worktree_path, ignore_errors=True)
-            worktree_path.mkdir(parents=True, exist_ok=True)
-            shutil.copytree(
-                root / ".git",
-                worktree_path / ".git",
-                symlinks=True,
-                dirs_exist_ok=True,
-            )
-            co_res = subprocess.run(
-                ["git", "checkout", "-f", "-B", branch_name, base_commit],
-                cwd=worktree_path,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            if co_res.returncode != 0:
-                shutil.rmtree(worktree_path, ignore_errors=True)
-                raise RuntimeError(f"Failed to create worktree: {co_res.stderr}")
-        else:
-            raise RuntimeError(f"Failed to create worktree: {result.stderr}")
-
-    return str(worktree_path), branch_name
-
-
-def destroy_worktree(worktree_path: str, branch_name: str) -> None:
-    """Destroy a git worktree and its temporary branch."""
-    root = _repo_root()
-    subprocess.run(
-        ["git", "worktree", "remove", "--force", worktree_path],
-        cwd=root,
-        capture_output=True,
-        check=False,
-    )
-    subprocess.run(
-        ["git", "worktree", "prune"], cwd=root, capture_output=True, check=False
-    )
-    subprocess.run(
-        ["git", "branch", "-D", branch_name], cwd=root, capture_output=True, check=False
-    )
-    shutil.rmtree(worktree_path, ignore_errors=True)
-
-
 def load_agents_local() -> dict[str, Any]:
     """Load agents.local.yaml if it exists."""
     agents_file = _repo_root() / "agents.local.yaml"
@@ -517,8 +438,15 @@ def render_role_prompt(
     attempt: int,
     base_commit: str,
     previous_verification: str | None = None,
+    *,
+    commit: str | None = None,
+    worktree: Path | None = None,
 ) -> tuple[str, int]:
-    """Render the role prompt from AGENTS.md with all milestone-specific placeholders resolved.
+    """Render the role prompt from AGENTS.md with every placeholder resolved.
+
+    base_commit is the attempt's pre-implementation commit ({base}); commit is the commit the
+    role works on ({sha}, defaults to base_commit: builders start there, verifiers get the
+    built commit). worktree defaults to the attempt's conventional absolute path.
     Returns (prompt, version)."""
     agents_path = _repo_root() / "AGENTS.md"
     if not agents_path.exists():
@@ -540,39 +468,43 @@ def render_role_prompt(
 
     version = get_prompt_version(role)
 
-    state = load_state(milestone)
-    criteria_version = state.get("criteria_version") or ""
+    criteria_version = load_state(milestone).get("criteria_version") or ""
     if not criteria_version:
         try:
             criteria_version = spec_hash(milestone)
         except (OSError, yaml.YAMLError, KeyError, ValueError):
             criteria_version = "unversioned"
 
-    base_sha = state.get("base_commit") or base_commit
-    worktree_rel = f".worktrees/{milestone.lower()}-attempt-{attempt:02d}"
-
-    prompt = prompt_template
-    prompt = prompt.replace("{id}", milestone)
-    prompt = prompt.replace("{n}", f"{attempt:02d}")
-    prompt = prompt.replace("{n_int}", str(attempt))
-    prompt = prompt.replace("{sha}", base_commit)
-    prompt = prompt.replace("{base}", base_sha)
-    prompt = prompt.replace("{criteria_version}", criteria_version[:12])
-    prompt = prompt.replace("{worktree}", worktree_rel)
-
-    if previous_verification:
-        prompt = prompt.replace(
-            "{previous}", f"Previous verification report:\n{previous_verification}\n"
-        )
-    else:
-        prompt = prompt.replace("{previous}", "")
+    if worktree is None:
+        kind = "build" if role == "builder" else "verify"
+        worktree = _repo_root() / ".worktrees" / f"{milestone}-a{attempt:02d}-{kind}"
 
     workflow = load_workflow()
-    builder_tests = workflow.get("commands", {}).get("builder_tests", "")
-    prompt = prompt.replace("{builder_tests}", builder_tests)
-    prompt = prompt.replace("{orch}", str(REPO_ROOT / "orch"))
+    values = {
+        "id": milestone,
+        "n": f"{attempt:02d}",
+        "n_int": str(attempt),
+        "sha": commit or base_commit,
+        "base": base_commit,
+        "criteria_version": criteria_version,
+        "worktree": str(worktree),
+        "builder_tests": workflow.get("commands", {}).get("builder_tests", ""),
+        "orch": str(_repo_root() / "orch"),
+        "previous": "\0previous\0",  # filled last: report text may itself contain braces
+    }
+    prompt = prompt_template
+    for key, value in values.items():
+        prompt = prompt.replace("{" + key + "}", value)
+    unresolved = sorted(set(re.findall(r"\{[A-Za-z_][A-Za-z0-9_]*\}", prompt)))
+    if unresolved:
+        raise ValueError(f"unresolved placeholders in {role} prompt: {unresolved}")
 
-    return prompt, version
+    report = (
+        f"Previous verification report:\n{previous_verification}\n"
+        if previous_verification
+        else ""
+    )
+    return prompt.replace("\0previous\0", report), version
 
 
 def get_agent_candidates(role: str) -> list[tuple[str, dict[str, Any]]]:
@@ -607,71 +539,92 @@ def get_agent_candidates(role: str) -> list[tuple[str, dict[str, Any]]]:
     return candidates
 
 
-def get_agent_command(role: str) -> str | None:
-    """Get the primary command for a role from agents.local.yaml."""
-    candidates = get_agent_candidates(role)
-    if not candidates:
-        return None
-    return candidates[0][1]["command"]
+DEFAULT_AGENT_TIMEOUT = 3600
+
+
+def _sbpl(path: str) -> str:
+    return '"' + path.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
 def _build_seatbelt_profile(
-    worktree_path: Path, git_common_dir: Path, attempt_tmp: Path
+    worktree: Path,
+    git_dir: Path,
+    common_dir: Path,
+    attempt_tmp: Path,
+    state_dirs: list[str],
 ) -> str:
-    """Build macOS Seatbelt profile confining writes to worktree and temporary attempt dir (ported from launch.sh)."""
-    real_wt = str(worktree_path.resolve())
-    real_git = str(git_common_dir.resolve())
-    real_tmp = str(attempt_tmp.resolve())
+    """Seatbelt profile: deny all writes, then allow only the attempt worktree, the git
+    metadata needed to commit in it (objects, refs, logs, its admin dir), the per-attempt
+    TMPDIR and the agent's declared state directories. .git/hooks and .git/config stay denied."""
+    allowed = [
+        worktree,
+        git_dir,
+        common_dir / "objects",
+        common_dir / "refs",
+        common_dir / "logs",
+        attempt_tmp,
+    ]
+    rules = [f"  (subpath {_sbpl(str(p.resolve()))})" for p in allowed]
+    rules.append('  (subpath "/dev")')
+    for entry in state_dirs:
+        if (
+            "*" in entry
+        ):  # e.g. ~/.claude.json* (lock and temp files next to a state file)
+            rx = re.escape(entry).replace(r"\*", "[^/]*")
+            rules.append(f'  (regex #"^{rx}$")')
+        else:
+            rules.append(f"  (subpath {_sbpl(entry)})")
     home = str(Path.home().resolve())
-    return f"""(version 1)
-(allow default)
-(deny file-write*)
-(allow file-write*
-  (subpath "{real_wt}")
-  (subpath "{real_git}")
-  (subpath "{real_tmp}")
-  (subpath "/private/tmp")
-  (subpath "/tmp")
-  (subpath "/dev"))
-(deny file-read*
-  (subpath "{home}/.ssh")
-  (subpath "{home}/.aws")
-  (subpath "{home}/.config/gh")
-  (subpath "{home}/.local/state/ai2ii"))
-"""
+    denied = [f"{home}/.ssh", f"{home}/.aws", f"{home}/.config/gh"]
+    return (
+        "(version 1)\n(allow default)\n(deny file-write*)\n(allow file-write*\n"
+        + "\n".join(rules)
+        + ")\n(deny file-read*\n"
+        + "\n".join(f"  (subpath {_sbpl(p)})" for p in denied)
+        + ")\n"
+    )
+
+
+def _git_path(wt: Path, what: str) -> Path:
+    return Path(_git("rev-parse", "--path-format=absolute", what, cwd=wt).strip())
 
 
 def run_agent_in_worktree(
     worktree_path: str,
     prompt: str,
     agent_command: str,
-    timeout_sec: int = 600,
-    use_seatbelt: bool = False,
-) -> tuple[int, str, str]:
-    """Run an agent in the worktree with process-group timeout and optional Seatbelt confinement."""
+    log_handle: Any,
+    timeout_sec: int = DEFAULT_AGENT_TIMEOUT,
+    state_dirs: list[str] | None = None,
+) -> int:
+    """Run an agent under Seatbelt in its worktree, output to log_handle. Always sandboxed;
+    the whole process group is killed when the agent exits. Raises TimeoutExpired."""
     wt = Path(worktree_path).resolve()
-    attempt_dir = Path(tempfile.mkdtemp(prefix="ai2ii-attempt-"))
+    attempt_tmp = Path(tempfile.mkdtemp(prefix="ai2ii-attempt-")).resolve()
     try:
-        prompt_file = attempt_dir / "prompt.txt"
+        prompt_file = attempt_tmp / "prompt.txt"
         prompt_file.write_text(prompt, encoding="utf-8")
-
-        cmd_str = agent_command.replace("{prompt_file}", str(prompt_file))
+        cmd_str = agent_command.replace("{prompt_file}", shlex.quote(str(prompt_file)))
         env = os.environ.copy()
         env["GIT_OPTIONAL_LOCKS"] = "0"
-        env["TMPDIR"] = str(attempt_dir)
-
-        if use_seatbelt and shutil.which("sandbox-exec"):
-            common_git = _repo_root() / ".git"
-            profile = _build_seatbelt_profile(wt, common_git, attempt_dir)
-            exec_cmd = ["sandbox-exec", "-p", profile, "bash", "-c", cmd_str]
-        else:
-            exec_cmd = ["bash", "-c", cmd_str]
-
-        return run_process_with_group_timeout(
-            exec_cmd, cwd=wt, timeout_sec=timeout_sec, env=env
+        env["TMPDIR"] = str(attempt_tmp)
+        profile = _build_seatbelt_profile(
+            wt,
+            _git_path(wt, "--git-dir"),
+            _git_path(wt, "--git-common-dir"),
+            attempt_tmp,
+            state_dirs or [],
         )
+        rc, _, _ = run_process_with_group_timeout(
+            ["sandbox-exec", "-p", profile, "bash", "-c", cmd_str],
+            cwd=wt,
+            timeout_sec=timeout_sec,
+            env=env,
+            stdout_handle=log_handle,
+        )
+        return rc
     finally:
-        shutil.rmtree(attempt_dir, ignore_errors=True)
+        shutil.rmtree(attempt_tmp, ignore_errors=True)
 
 
 def record_attempt_metadata(
@@ -685,8 +638,10 @@ def record_attempt_metadata(
     duration: float,
     prompt_version: int | None = None,
     family: str | None = None,
-) -> None:
-    """Record attempt metadata and update per-milestone metrics."""
+    metrics: bool = True,
+) -> Path:
+    """Append a candidate record to <role>_metadata.yaml (top level mirrors the latest record,
+    `candidates` lists all) and, unless metrics=False, update metrics/<milestone>.yaml."""
     attempts_dir = MILESTONES_DIR / milestone / "attempts" / f"{attempt:02d}"
     attempts_dir.mkdir(parents=True, exist_ok=True)
 
@@ -696,7 +651,12 @@ def record_attempt_metadata(
         except (OSError, ValueError):
             prompt_version = 1
 
-    metadata = {
+    metadata_file = attempts_dir / f"{role}_metadata.yaml"
+    previous: list[Any] = []
+    if metadata_file.exists():
+        old = yaml.safe_load(metadata_file.read_text(encoding="utf-8")) or {}
+        previous = list(old.get("candidates") or [])
+    record = {
         "milestone": milestone,
         "attempt": attempt,
         "role": role,
@@ -706,360 +666,204 @@ def record_attempt_metadata(
         "prompt_version": prompt_version,
         "result": result,
         "commit": commit,
-        "duration_seconds": duration,
+        "duration_seconds": round(duration, 3),
         "timestamp": _utc_now(),
     }
-
-    metadata_file = attempts_dir / f"{role}_metadata.yaml"
-    with open(metadata_file, "w", encoding="utf-8") as f:
-        yaml.safe_dump(metadata, f)
-
-    # Also update metrics/<milestone>.yaml (DESIGN.md 24.17)
-    try:
-        METRICS_DIR.mkdir(parents=True, exist_ok=True)
-        m_file = METRICS_DIR / f"{milestone}.yaml"
-        m_data: dict[str, Any] = {}
-        if m_file.exists():
-            m_data = yaml.safe_load(m_file.read_text(encoding="utf-8")) or {}
-        m_data["milestone"] = milestone
-        m_data["attempts"] = max(int(m_data.get("attempts", 0)), attempt)
-        m_data["cost_usd"] = None
-        m_data["wall_time_seconds"] = round(
-            float(m_data.get("wall_time_seconds", 0.0)) + duration, 3
-        )
-        m_data.setdefault("families", {})[role] = family or model
-        m_data.setdefault("prompt_versions", {})[role] = prompt_version
-        m_file.write_text(yaml.safe_dump(m_data, sort_keys=False), encoding="utf-8")
-    except (OSError, yaml.YAMLError, ValueError) as exc:
-        _ = exc
-
-
-def get_worktree_changed_files(worktree_path: Path, base_commit: str) -> list[str]:
-    """Return all tracked modified/added/deleted/renamed files AND untracked files in worktree relative to base_commit."""
-    changed: set[str] = set()
-    diff_res = subprocess.run(
-        ["git", "diff", "--name-only", base_commit],
-        cwd=worktree_path,
-        capture_output=True,
-        text=True,
-        check=False,
+    metadata_file.write_text(
+        yaml.safe_dump({**record, "candidates": [*previous, record]}, sort_keys=False),
+        encoding="utf-8",
     )
-    if diff_res.returncode == 0:
-        for line in diff_res.stdout.splitlines():
-            if line.strip():
-                changed.add(line.strip())
 
-    untracked_res = subprocess.run(
-        ["git", "ls-files", "--others", "--exclude-standard"],
-        cwd=worktree_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if untracked_res.returncode == 0:
-        for line in untracked_res.stdout.splitlines():
-            if line.strip():
-                changed.add(line.strip())
+    if metrics:
+        # Also update metrics/<milestone>.yaml (DESIGN.md 24.17)
+        try:
+            METRICS_DIR.mkdir(parents=True, exist_ok=True)
+            m_file = METRICS_DIR / f"{milestone}.yaml"
+            m_data: dict[str, Any] = {}
+            if m_file.exists():
+                m_data = yaml.safe_load(m_file.read_text(encoding="utf-8")) or {}
+            m_data["milestone"] = milestone
+            m_data["attempts"] = max(int(m_data.get("attempts", 0)), attempt)
+            m_data["cost_usd"] = None
+            m_data["wall_time_seconds"] = round(
+                float(m_data.get("wall_time_seconds", 0.0)) + duration, 3
+            )
+            m_data.setdefault("families", {})[role] = family or model
+            m_data.setdefault("prompt_versions", {})[role] = prompt_version
+            m_file.write_text(yaml.safe_dump(m_data, sort_keys=False), encoding="utf-8")
+        except (OSError, yaml.YAMLError, ValueError) as exc:
+            _ = exc
+    return metadata_file
 
-    return sorted(changed)
+
+# --- dispatch (DESIGN.md 24.3) ---
 
 
-def copy_back_paths(
-    role: str, milestone: str, attempt: int, changed_files: list[str]
-) -> list[str]:
-    """Paths dispatch copies from an attempt worktree to main (DESIGN.md 24.3 rule 1).
+@contextlib.contextmanager
+def _main_lock() -> Any:
+    """Main worktree on main, serialised on the repository lock."""
+    refusal = _require_main_branch()
+    if refusal:
+        raise Refused(refusal.removeprefix("Refused: "))
+    with _repo_lock():
+        yield
 
-    Builder: only its attempt record; code stays on the attempt branch until integration.
-    Verifier: its ownership-checked files (acceptance tests and verification.yaml), never code.
-    """
-    if role == "builder":
-        record = f"milestones/{milestone}/attempts/{attempt:02d}/build.md"
-        return [f for f in changed_files if f == record]
-    return [
-        f
-        for f in changed_files
-        if f.startswith(f"acceptance/{milestone}/")
-        or f == f"milestones/{milestone}/attempts/{attempt:02d}/verification.yaml"
-    ]
+
+def _identity(name: str, info: dict[str, Any]) -> dict[str, str]:
+    return {
+        "agent": name,
+        "family": str(info.get("family") or "unknown"),
+        "model": str(info.get("model") or ""),
+        "session": f"dispatch-{uuid.uuid4().hex[:12]}",
+    }
+
+
+def _set_identity(m: str, role: str, ident: dict[str, str]) -> None:
+    """Make `ident` the recorded builder/verifier of the current attempt (fallback candidate)."""
+    st = load_state(m)
+    a = _cur(st)
+    a[role] = dict(ident)
+    note = f"{role} is now {ident['agent']} (fallback candidate)"
+    if role == "verifier" and ident["family"] == a["builder"].get("family"):
+        note += " (same family as builder: SHOULD differ, 24.15)"
+    _set_status(st, st["status"], note)
+    save_state(m, st, f"orchestrator: {m} {role} -> {ident['agent']}")
+
+
+def _reset_worktree(wt: Path, branch: str, base: str) -> None:
+    """Back to the recorded base: branch on base, nothing untracked or ignored."""
+    _git("checkout", "-q", "-f", "-B", branch, base, cwd=wt)
+    _git("clean", "-q", "-f", "-d", "-x", cwd=wt)
+
+
+def _run_candidate(
+    wt: Path,
+    branch: str,
+    base: str,
+    record: str,
+    prompt: str,
+    info: dict[str, Any],
+    log: Path,
+) -> tuple[str, str]:
+    """Run one candidate to completion. Returns (result, head): result is success | failure |
+    timeout | no-record. On anything but success the worktree is reset to base."""
+    log.parent.mkdir(parents=True, exist_ok=True)
+    state_dirs = [os.path.expanduser(str(d)) for d in info.get("state_dirs") or []]
+    with open(log, "w", encoding="utf-8") as f:
+        f.write(f"# command: {info['command']}\n")
+        f.flush()
+        try:
+            rc = run_agent_in_worktree(
+                str(wt),
+                prompt,
+                info["command"],
+                f,
+                int(info.get("timeout_seconds") or DEFAULT_AGENT_TIMEOUT),
+                state_dirs,
+            )
+            result = "success" if rc == 0 else "failure"
+        except subprocess.TimeoutExpired:
+            rc, result = 124, "timeout"
+        f.write(f"\n# exit: {rc}\n")
+        head = _git("rev-parse", "HEAD", cwd=wt, check=False).strip()
+        if result == "success" and not (
+            head
+            and head
+            == _git("rev-parse", f"refs/heads/{branch}", cwd=wt, check=False).strip()
+            and _git_ok("cat-file", "-e", f"{head}:{record}", cwd=wt)
+        ):
+            result = "no-record"
+            f.write(f"# no committed {record} on {branch}\n")
+        if result == "success":
+            leftovers = _git("status", "--porcelain", "--ignored", cwd=wt).strip()
+            if leftovers:
+                f.write(f"# discarded uncommitted leftovers:\n{leftovers}\n")
+                _git("reset", "-q", "--hard", "HEAD", cwd=wt)
+                _git("clean", "-q", "-f", "-d", "-x", cwd=wt)
+    if result != "success":
+        _reset_worktree(wt, branch, base)
+    return result, head
 
 
 def cmd_dispatch(args: Any) -> int:
-    """Dispatch an agent for a role with fallback, ownership verification, and artifact retention."""
-    refusal = _require_main_branch()
-    if refusal:
-        print(refusal)
-        return 1
-    milestone = args.milestone
-    role = args.role
-    root = _repo_root()
-
-    state = load_state(milestone)
-    workflow = load_workflow()
-    max_attempts = workflow.get("limits", {}).get("max_attempts", 3)
-
-    if role == "builder":
-        from_state = state.get("status", "DRAFT")
-        if from_state not in ("READY", "REWORK"):
-            print(f"Cannot dispatch builder: milestone is in {from_state} state")
-            return 1
-        current_attempt = int(state.get("attempt", 0))
-        if current_attempt >= max_attempts:
-            print(
-                f"Cannot dispatch builder: max_attempts ({max_attempts}) reached for {milestone}"
-            )
-            return 1
-        attempt = current_attempt + 1
-        base_commit = get_git_sha()
-    elif role == "verifier":
-        from_state = state.get("status", "DRAFT")
-        if from_state not in ("BUILT", "STALE"):
-            print(f"Cannot dispatch verifier: milestone is in {from_state} state")
-            return 1
-        attempt = max(1, int(state.get("attempt", 1)))
-        base_commit = (
-            state.get("built_commit") or state.get("base_commit") or get_git_sha()
+    """start-build / start-verify, run the configured candidates under Seatbelt with
+    fallback, and leave the attempt ready for finish-build / finish-verify (DESIGN.md 24.3).
+    Attempt records stay on the attempt branch; main only gets state, metadata and run logs."""
+    m, role = args.milestone, args.role
+    with _main_lock():
+        st = _require_milestone(m)
+        _require_status(
+            st, m, *(("READY", "REWORK") if role == "builder" else ("BUILT",))
         )
-    else:
-        print(f"Unsupported dispatch role: {role}")
-        return 1
-
-    candidates = get_agent_candidates(role)
-    if not candidates:
-        print(f"No agent configured for role {role}")
-        return 1
-
-    previous_verification = None
-    if role == "builder" and attempt > 1:
-        prev_verification_file = (
-            MILESTONES_DIR
-            / milestone
-            / "attempts"
-            / f"{attempt - 1:02d}"
-            / "verification.yaml"
+        candidates = get_agent_candidates(role)
+        if not candidates:
+            raise Refused(f"no agent configured for role {role}")
+        if not shutil.which("sandbox-exec"):
+            raise Refused("sandbox-exec not found: dispatch always runs under Seatbelt")
+        ident = _identity(*candidates[0])
+        (cmd_start_build if role == "builder" else cmd_start_verify)(
+            argparse.Namespace(milestone=m, **ident)
         )
-        if prev_verification_file.exists():
-            previous_verification = prev_verification_file.read_text(encoding="utf-8")
-
-    prompt, prompt_version = render_role_prompt(
-        role, milestone, attempt, base_commit, previous_verification
-    )
-
-    # Try each configured candidate in order (automatic fallback on failure/quota/timeout)
-    last_rc = 1
-    chosen_name = "unknown"
-    chosen_info: dict[str, Any] = {}
-    worktree_path = ""
-    branch_name = ""
-    duration = 0.0
-
-    for idx, (agent_name, agent_info) in enumerate(candidates):
-        chosen_name = agent_name
-        chosen_info = agent_info
-        agent_command = agent_info["command"]
-
-        try:
-            worktree_path, branch_name = create_worktree(
-                milestone, attempt, base_commit, role=role
-            )
-        except RuntimeError as e:
-            print(f"Failed to create worktree: {e}")
-            return 1
-
-        print(
-            f"Dispatching {role} ({agent_name}) for {milestone} attempt {attempt:02d} in {worktree_path} (prompt v{prompt_version})"
-        )
-        start_time = time.time()
-        try:
-            rc, stdout, stderr = run_agent_in_worktree(
-                worktree_path, prompt, agent_command
-            )
-        except subprocess.TimeoutExpired:
-            duration = time.time() - start_time
-            print(
-                f"TIMEOUT: Agent {agent_name} timed out for {milestone} attempt {attempt:02d}"
-            )
-            record_attempt_metadata(
-                milestone,
-                attempt,
-                role,
-                agent_name,
-                agent_info.get("model", agent_info.get("family", "unknown")),
-                "timeout",
-                base_commit,
-                duration,
-                prompt_version=prompt_version,
-                family=agent_info.get("family", "unknown"),
-            )
-            last_rc = 124
-            if idx + 1 < len(candidates):
-                print(f"Falling back to next candidate for {role}...")
-                continue
-            return 1
-
-        duration = time.time() - start_time
-        last_rc = rc
-
-        # Persist agent output log under runs/
-        run_log_dir = RUNS_DIR / milestone / f"{attempt:02d}" / base_commit[:12]
-        run_log_dir.mkdir(parents=True, exist_ok=True)
-        (run_log_dir / f"dispatch-{role}-{agent_name}.log").write_text(
-            f"# agent: {agent_name}\n# command: {agent_command}\n# exit: {rc}\n{stdout}\n{stderr}\n",
-            encoding="utf-8",
-        )
-
-        if rc == 0:
-            break
-
-        print(f"Agent {agent_name} exited with code {rc}")
-        record_attempt_metadata(
-            milestone,
-            attempt,
-            role,
-            agent_name,
-            agent_info.get("model", agent_info.get("family", "unknown")),
-            "failure",
-            base_commit,
-            duration,
-            prompt_version=prompt_version,
-            family=agent_info.get("family", "unknown"),
-        )
-        if idx + 1 < len(candidates):
-            print(f"Falling back to next configured agent for {role}...")
-
-    if last_rc != 0:
-        print(
-            f"Dispatch failed: all configured agents for {role} failed (last exit code {last_rc})"
-        )
-        return 1
-
-    wt_path = Path(worktree_path)
-    # Remove prompt.txt if an external test or old helper wrote it inside worktree
-    (wt_path / "prompt.txt").unlink(missing_ok=True)
-
-    changed_files = get_worktree_changed_files(wt_path, base_commit)
-    ok, violations = check_ownership(
-        role, milestone, attempt, changed_files, root_dir=wt_path
-    )
-    if not ok:
-        print(f"Dispatch REJECTED: path ownership violations by {role}: {violations}")
-        gate_log = (
-            RUNS_DIR / milestone / f"{attempt:02d}" / base_commit[:12] / "gate.log"
-        )
-        gate_log.parent.mkdir(parents=True, exist_ok=True)
-        gate_log.write_text(
-            f"Path ownership violations: {violations}\n", encoding="utf-8"
-        )
-        record_attempt_metadata(
-            milestone,
-            attempt,
-            role,
-            chosen_name,
-            chosen_info.get("model", chosen_info.get("family", "unknown")),
-            "rejected_ownership",
-            base_commit,
-            duration,
-            prompt_version=prompt_version,
-            family=chosen_info.get("family", "unknown"),
-        )
-        return 1
-
-    ast_ok, ast_errors = check_ast_test_weakening(wt_path, changed_files)
-    if not ast_ok:
-        print(f"Dispatch REJECTED: test weakening detected: {ast_errors}")
-        return 1
-
-    # Commit any uncommitted work inside the worktree so the branch preserves the exact commit
-    dirty_res = subprocess.run(
-        ["git", "status", "--porcelain"],
-        cwd=wt_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if dirty_res.stdout.strip():
-        subprocess.run(
-            ["git", "add", "-A"], cwd=wt_path, capture_output=True, check=False
-        )
-        subprocess.run(
-            ["git", "commit", "-m", f"feat({milestone}): {role} attempt {attempt:02d}"],
-            cwd=wt_path,
-            capture_output=True,
-            check=False,
-        )
-
-    wt_head_res = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=wt_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    resulting_commit = (
-        wt_head_res.stdout.strip()[:12] if wt_head_res.returncode == 0 else base_commit
-    )
-
-    for rel_path in copy_back_paths(role, milestone, attempt, changed_files):
-        src_file = wt_path / rel_path
-        dest_file = root / rel_path
-        if src_file.is_file():
-            dest_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src_file, dest_file)
-
-    if role == "builder":
-        build_md = (
-            MILESTONES_DIR / milestone / "attempts" / f"{attempt:02d}" / "build.md"
-        )
-        if build_md.exists():
-            print("Builder wrote build.md")
+        st = load_state(m)
+        a = _cur(st)
+        if role == "builder":
+            branch, rel, base = a["branch"], a["worktree"], a["base"]
+            record_name = "build.md"
         else:
-            print("WARNING: Builder did not write build.md")
-    elif role == "verifier":
-        verification_yaml = (
-            MILESTONES_DIR
-            / milestone
-            / "attempts"
-            / f"{attempt:02d}"
-            / "verification.yaml"
+            branch, rel, base = a["verify_branch"], a["verify_worktree"], a["built"]
+            record_name = "verification.yaml"
+        n, wt = a["n"], _repo_root() / rel
+        record = f"milestones/{m}/attempts/{_nn(n)}/{record_name}"
+        previous = None
+        prev = (
+            st["attempts"][-2]
+            if role == "builder" and len(st["attempts"]) > 1
+            else None
         )
-        if verification_yaml.exists():
-            print("Verifier wrote verification.yaml")
-        else:
-            print("WARNING: Verifier did not write verification.yaml")
+        if prev and prev.get("verify_branch"):
+            previous = _git(
+                "show",
+                f"{prev['verify_branch']}:milestones/{m}/attempts/{_nn(prev['n'])}/verification.yaml",
+                check=False,
+            )
+        prompt, version = render_role_prompt(
+            role, m, n, a["base"], previous or None,
+            commit=a["built"] if role == "verifier" else None, worktree=wt,
+        )  # fmt: skip
 
-    model_label = chosen_info.get("model") or chosen_info.get("family", "unknown")
-    record_attempt_metadata(
-        milestone,
-        attempt,
-        role,
-        chosen_name,
-        model_label,
-        "success",
-        resulting_commit,
-        duration,
-        prompt_version=prompt_version,
-        family=chosen_info.get("family", "unknown"),
-    )
-
-    if role == "builder":
-        state["status"] = "BUILDING"
-        state["attempt"] = attempt
-        state["base_commit"] = base_commit
-        state["built_commit"] = resulting_commit
-        state["worktree"] = str(wt_path)
-        state["branch"] = branch_name
-        save_state(milestone, state)
-    elif role == "verifier":
-        state["status"] = "VERIFYING"
-        state["attempt"] = attempt
-        state["verified_commit"] = resulting_commit
-        state["verify_worktree"] = str(wt_path)
-        state["verify_branch"] = branch_name
-        save_state(milestone, state)
-
+    for idx, (name, info) in enumerate(candidates):
+        if idx:
+            ident = _identity(name, info)
+            with _main_lock():
+                _set_identity(m, role, ident)
+        log = _run_dir(m, n, a["base"]) / f"dispatch-{role}-{idx + 1:02d}-{name}.log"
+        t0 = time.monotonic()
+        result, head = _run_candidate(wt, branch, base, record, prompt, info, log)
+        duration = time.monotonic() - t0
+        with _main_lock():
+            meta = record_attempt_metadata(
+                m, n, role, name, ident["model"], result, head, duration,
+                prompt_version=version, family=ident["family"], metrics=False,
+            )  # fmt: skip
+            st = load_state(m)
+            if result != "success":
+                _set_status(
+                    st, st["status"], f"{role} candidate {name} {result} ({_rel(log)})"
+                )
+            save_state(
+                m, st, f"orchestrator: {m} dispatch {role} {name} {result}", [meta, log]
+            )
+        print(f"{m}: {role} candidate {name}: {result}")
+        if result == "success":
+            print(
+                f"{m}: attempt {_nn(n)} ready for finish-{'build' if role == 'builder' else 'verify'}"
+            )
+            return 0
     print(
-        f"Dispatch completed with exit code 0 (commit {resulting_commit}, worktree retained at {wt_path})"
+        f"dispatch failed: every {role} candidate failed; {m} stays {st['status']}",
+        file=sys.stderr,
     )
-    return 0
+    return 1
 
 
 # === STATE, SPEC, AND OWNERSHIP PRIMITIVES ===
@@ -1845,10 +1649,7 @@ def governed(fn: Any) -> Any:
 
     @functools.wraps(fn)
     def wrapper(args: Any) -> int:
-        refusal = _require_main_branch()
-        if refusal:
-            raise Refused(refusal.removeprefix("Refused: "))
-        with _repo_lock():
+        with _main_lock():
             return fn(args)
 
     return wrapper

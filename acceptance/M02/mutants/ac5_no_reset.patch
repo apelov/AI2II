@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 8b8b9ef..7ad8191 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -781,7 +781,7 @@ def _run_candidate(
+                 _git("reset", "-q", "--hard", "HEAD", cwd=wt)
+                 _git("clean", "-q", "-f", "-d", "-x", cwd=wt)
+     if result != "success":
+-        _reset_worktree(wt, branch, base)
++        pass
+     return result, head
+ 
+ 

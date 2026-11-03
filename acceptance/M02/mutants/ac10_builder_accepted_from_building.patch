@@ -1,0 +1,13 @@
+diff --git a/orchestrator.py b/orchestrator.py
+index 8b8b9ef..3ab4ce3 100755
+--- a/orchestrator.py
++++ b/orchestrator.py
+@@ -792,6 +792,8 @@ def cmd_dispatch(args: Any) -> int:
+     m, role = args.milestone, args.role
+     with _main_lock():
+         st = _require_milestone(m)
++        if role == "builder" and st.get("status") == "BUILDING":
++            return 0
+         _require_status(
+             st, m, *(("READY", "REWORK") if role == "builder" else ("BUILT",))
+         )

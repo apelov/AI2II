@@ -1,0 +1,131 @@
+milestone: M02
+attempt: 1
+commit: d612af0ffb32e937fcbd484afc1c205beb07e1de
+criteria_version: 9e51bba8b5c9e4b32e44346908fdfc1d53f6c8b16daefdec520ed92f27b291de
+verifier:
+  role: verifier
+  family: gemini
+  model: gemini-3.8-flash
+verdict: PASS
+acceptance:
+  AC1:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac1_builder_and_verifier_dispatch
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC2:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac2_dispatch_leaves_main_clean
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC3:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac3_no_record_committed_fails_dispatch
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC4:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac4_rendered_prompt_completeness_and_cli_parsing
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC5:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac5_process_group_cleanup_and_worktree_reset
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC6:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac6_failure_modes_and_empty_candidates
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC7:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac7_metadata_and_retained_candidate_identity
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC8:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac8_seatbelt_profile_and_confinement
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC9:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac9_concurrent_builder_dispatches
+    run: runs/M02/01/d612af0ffb32/acc.log
+  AC10:
+    result: PASS
+    tests:
+      - acceptance/M02/test_m02.py::test_ac10_dispatch_status_preconditions
+    run: runs/M02/01/d612af0ffb32/acc.log
+validity:
+  AC1:
+    fails_on: base
+    run: runs/M02/01/d612af0ffb32/validity-AC1.log
+  AC2:
+    fails_on: mutant:ac2_leak_to_main
+    run: runs/M02/01/d612af0ffb32/validity-AC2.log
+  AC3:
+    fails_on: mutant:ac3_ignore_missing_record
+    run: runs/M02/01/d612af0ffb32/validity-AC3.log
+  AC4:
+    fails_on: base
+    run: runs/M02/01/d612af0ffb32/validity-AC4.log
+  AC5:
+    fails_on: mutant:ac5_no_kill_group
+    run: runs/M02/01/d612af0ffb32/validity-AC5.log
+  AC6:
+    fails_on: mutant:ac6_no_candidates_starts_build
+    run: runs/M02/01/d612af0ffb32/validity-AC6.log
+  AC7:
+    fails_on: mutant:ac7_fallback_retains_first_identity
+    run: runs/M02/01/d612af0ffb32/validity-AC7.log
+  AC8:
+    fails_on: mutant:ac8_no_seatbelt
+    run: runs/M02/01/d612af0ffb32/validity-AC8.log
+  AC9:
+    fails_on: base
+    run: runs/M02/01/d612af0ffb32/validity-AC9.log
+  AC10:
+    fails_on: mutant:ac10_builder_accepted_from_building
+    run: runs/M02/01/d612af0ffb32/validity-AC10.log
+findings:
+  - id: F1
+    severity: minor
+    criterion: AC8
+    description: "Builder test tests/test_m02_dispatch.py::test_agent_is_confined_by_seatbelt returns silently (prints SKIP) when Seatbelt cannot be nested, representing a hollow pass in nested sandbox environments."
+    reproduction: "Run pytest tests/test_m02_dispatch.py::test_agent_is_confined_by_seatbelt inside an existing Seatbelt sandbox; note that it exits 0 without verifying confinement."
+    evidence: "tests/test_m02_dispatch.py:529-532"
+claim_audit:
+  - claim: "AC1 satisfied: builder and verifier dispatch integrate on M01 lifecycle"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/acc.log; validity base retained because base predated M01 lifecycle integration (flat state model, no attempts list, no start-build/start-verify)"
+  - claim: "AC2 satisfied: main working tree clean, records stay on attempt branch"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/validity-AC2.log catches mutant ac2_leak_to_main (copying build.md into main)"
+  - claim: "AC3 satisfied: silent exit without record recorded as no-record"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/validity-AC3.log catches mutant ac3_ignore_missing_record (reporting success on missing record)"
+  - claim: "AC4 satisfied: rendered prompts complete and CLI commands parse"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/acc.log; validity base retained because prompt renderer at base lacked M02 variable substitutions ({worktree}, {criteria_version}, {orch}) and AGENTS.md template keys"
+  - claim: "AC5 satisfied: process groups cleaned up, worktree reset on failure"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/validity-AC5.log catches mutant ac5_no_kill_group (leaving delayed background writer alive)"
+  - claim: "AC6 satisfied: failure modes recorded, empty candidates refused, all-fail stays BUILDING"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/validity-AC6.log catches mutant ac6_no_candidates_starts_build (calling start-build when no candidates configured)"
+  - claim: "AC7 satisfied: attempt metadata records all candidates, retained candidate in state"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/validity-AC7.log catches mutant ac7_fallback_retains_first_identity (leaving failed candidate identity in state after fallback)"
+  - claim: "AC8 satisfied: Seatbelt profile and confinement enforced"
+    holds: true
+    ref: F1
+    evidence: "runs/M02/01/d612af0ffb32/validity-AC8.log catches mutant ac8_no_seatbelt (agent writing outside worktree without sandbox-exec). In acc.log, AC8 fails inside nested sandbox because sandbox-exec cannot be applied inside macOS Seatbelt; test_ac8_seatbelt_profile_and_confinement strictly fails rather than skipping. The orchestrator's re-run at finish-verify runs outside any sandbox and serves as the true live evidence."
+  - claim: "AC9 satisfied: concurrent builder dispatches for different milestones isolated"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/acc.log; validity base retained because base dispatch lacked repository locking (_main_lock) and separate attempt worktree naming"
+  - claim: "AC10 satisfied: status preconditions enforced for dispatch"
+    holds: true
+    evidence: "runs/M02/01/d612af0ffb32/validity-AC10.log catches mutant ac10_builder_accepted_from_building (accepting builder dispatch when milestone is in BUILDING)"
+required_fixes: []

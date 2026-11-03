@@ -1,0 +1,37 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac4_rendered_prompt_completeness_and_cli_parsing
+# commit: e989cc269607286f7fd01b7f40263ce6acc72c9e
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_ac4_rendered_prompt_completeness_and_cli_parsing _____________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+acceptance/M02/test_m02.py:525: in test_ac4_rendered_prompt_completeness_and_cli_parsing
+    e.ok("dispatch", "M01", "builder")
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_m02.Env object at 0x1066108c0>
+args = ('dispatch', 'M01', 'builder')
+
+    def ok(self, *args: str) -> str:
+        rc, out, err = self.orch(*args)
+>       assert rc == 0, f"orch {args} -> {rc}\n{out}\n{err}"
+E       AssertionError: orch ('dispatch', 'M01', 'builder') -> 1
+E         Dispatching builder (b1) for M01 attempt 01 in <tmp> (prompt v1)
+E         Agent b1 exited with code 1
+E         Dispatch failed: all configured agents for builder failed (last exit code 1)
+E         
+E         
+E       assert 1 == 0
+
+acceptance/M02/test_m02.py:320: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac4_rendered_prompt_completeness_and_cli_parsing
+1 failed in 1.06s
+
+# exit: 1

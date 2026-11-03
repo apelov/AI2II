@@ -1,0 +1,38 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M02/test_m02.py::test_ac5_process_group_cleanup_and_worktree_reset
+# commit: 86266da4c834600d36c296466398d00f32f68518 + mutant:ac5_no_reset
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_ac5_process_group_cleanup_and_worktree_reset _______________
+
+    def wrapper() -> None:
+        e = Env(stub=stub)
+        try:
+>           target_fn(e)
+
+acceptance/M02/test_m02.py:343: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+acceptance/M02/test_m02.py:589: in test_ac5_process_group_cleanup_and_worktree_reset
+    e.ok("dispatch", "M01", "builder")
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_m02.Env object at 0x1067ec620>
+args = ('dispatch', 'M01', 'builder')
+
+    def ok(self, *args: str) -> str:
+        rc, out, err = self.orch(*args)
+>       assert rc == 0, f"orch {args} -> {rc}\n{out}\n{err}"
+E       AssertionError: orch ('dispatch', 'M01', 'builder') -> 1
+E         M01: -> BUILDING attempt 01 in .worktrees/M01-a01-build (base 7d0c8bc171cc)
+E         M01: builder candidate b1: failure
+E         M01: builder candidate b2: failure
+E         
+E         dispatch failed: every builder candidate failed; M01 stays BUILDING
+E         
+E       assert 1 == 0
+
+acceptance/M02/test_m02.py:320: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M02/test_m02.py::test_ac5_process_group_cleanup_and_worktree_reset
+1 failed in 1.56s
+
+# exit: 1
