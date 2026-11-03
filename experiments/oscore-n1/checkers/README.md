@@ -4,7 +4,7 @@
 - **Author Family:** `google`
 - **Model:** `gemini-3.8-flash-high`
 - **Checker File:** [`checkers/observes_n1.py`](observes_n1.py)
-- **Specification:** [`draft-ietf-core-observe-multicast-notifications-15`](file:///Users/apelov/Code/CoAP/docs/secure/draft-ietf-core-observe-multicast-notifications-15.txt)
+- **Specification:** [`draft-ietf-core-observe-multicast-notifications-15`](file://<coap-repo>/docs/secure/draft-ietf-core-observe-multicast-notifications-15.txt)
 - **Experiment Profile:** Cell `N1` (nosec profile, CoAP server on `127.0.0.1:5683`, 3 sequential clients, multicast notifications to `224.0.1.187:56830`)
 
 In accordance with AI2II DESIGN.md 24.20 (and lesson L4), this checker was authored independently by family `google` without reading or importing the peer implementation's code or tools under `~/Code/CoAP/src` or `~/Code/CoAP/tools`.
@@ -109,7 +109,7 @@ The checker declares 5 capture negatives in `checkers/negatives/`. A correct che
 
 All negatives are validated automatically via:
 ```sh
-PYTHONPATH=/Users/apelov/Work/AI2II python3 -m wire validate-checkers interop.yaml
+PYTHONPATH=. python3 -m wire validate-checkers interop.yaml
 ```
 
 ---
