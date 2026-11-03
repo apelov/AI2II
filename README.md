@@ -6,12 +6,13 @@ independent agents (different model families), a deterministic orchestrator owns
 state change and runs every test itself, and interop claims are backed by wire-level
 evidence bundles that anyone can re-check.
 
-Prepared for the IETF Hackathon (champions: Alexander Pelov, Ivaylo Petrov).
+Prepared for the **IETF 127 Hackathon, San Francisco, 14–15 November 2026** (champions: Alexander Pelov, Ivaylo Petrov). Participants: start with [`docs/HACKATHON.md`](docs/HACKATHON.md).
 
 ## What do you want to achieve?
 
 | I want to… | Start here |
 |---|---|
+| **Take part in the Hackathon** | [`docs/HACKATHON.md`](docs/HACKATHON.md): the runbook, from setup to a shareable bundle |
 | **Show that my implementation really interoperates**: a capture of the exchange, not just "tests pass" | [Quick start: wire evidence](#quick-start-wire-evidence): write an `interop.yaml` for your peers, run `python3 -m wire run`, share the bundle |
 | **See inside a secured protocol** (TLS, DTLS, QUIC, …): the encrypted trace *and* a decrypted one | Peers export their keys; the bundle gets `capture-decrypted.pcapng` next to `capture.pcap`. See `wire/example/tls_echo/` and DESIGN.md 24.21 |
 | **Check someone else's interop claim** | `python3 -m wire verify-bundle <bundle>`, then open `capture.pcap` in Wireshark and read `verdict.json` and the checker logs. Try it on `runs/wire/oscore-n1/` |
