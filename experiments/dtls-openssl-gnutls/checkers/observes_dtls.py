@@ -49,7 +49,6 @@ def load_target_payloads() -> list[bytes]:
     search_paths = [
         Path(__file__).resolve().parent.parent / "vectors" / "payload.bin",
         Path("vectors/payload.bin"),
-        Path("/Users/apelov/Work/AI2II/experiments/dtls-openssl-gnutls/vectors/payload.bin"),
     ]
     for p in search_paths:
         if p.is_file():
