@@ -1,0 +1,21 @@
+Editcap (Wireshark) 4.6.9 (v4.6.9-0-g2d548b197c75).
+
+Copyright 1998-2026 Gerald Combs <gerald@wireshark.org> and contributors.
+Licensed under the terms of the GNU General Public License (version 2 or later).
+This is free software; see the file named COPYING in the distribution. There is
+NO WARRANTY; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Compile-time info:
+ Bit width: 64-bit
+  Compiler: Clang 17.0.0 (clang-1700.0.13.5)
+      GLib: 2.88.0
+ With:
+
+Runtime info:
+      OS: macOS 27.0, build 26A428 (Darwin 27.0.0)
+     CPU: Apple M3 Max
+  Memory: 36864 MB of physical memory
+    GLib: 2.88.0
+  Locale: LC_TYPE=C
+ Plugins: supported, 0 loaded
+ With:

@@ -1,0 +1,31 @@
+PASS: RFC 6347 Section 4.1.1 - DTLS exchange between loopback endpoints (127.0.0.1:49454 <-> 127.0.0.1:47556)
+PASS: RFC 6347 Section 4.2.1 / RFC 5246 Section 7.4.1.2 - ClientHello observed (client -> server)
+PASS: RFC 6347 Section 4.2.1 / RFC 5246 Section 7.4.1.3 - ServerHello negotiating DTLS 1.2 ({254, 253}) observed (server -> client)
+PASS: RFC 6347 Sections 4.1, 4.2.5, 4.2.6 / RFC 5246 Sections 7.1, 7.4.9 - Client ChangeCipherSpec and Finished observed (client -> server)
+PASS: RFC 6347 Sections 4.1, 4.2.5, 4.2.6 / RFC 5246 Sections 7.1, 7.4.9 - Server ChangeCipherSpec and Finished observed (server -> client)
+PASS: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Encrypted application data observed in both directions
+PASS: RFC 6347 Section 4.1.2 / RFC 5246 Section 6.2.3 - Record payload protection: payload bytes not observed in clear
+--- negative: checkers/negatives/unrelated.pcap replaces {capture}
+FAIL: RFC 6347 Section 4.1.1 - No DTLS exchange between two loopback endpoints observed
+FAIL: RFC 6347 Section 4.2.1 / RFC 5246 Section 7.4.1.2 - ClientHello handshake message not observed
+FAIL: RFC 6347 Section 4.2.1 / RFC 5246 Section 7.4.1.3 - ServerHello negotiating DTLS 1.2 ({254, 253}) not observed
+FAIL: RFC 6347 Sections 4.1, 4.2.5, 4.2.6 / RFC 5246 Sections 7.1, 7.4.9 - Client ChangeCipherSpec and Finished not observed
+FAIL: RFC 6347 Sections 4.1, 4.2.5, 4.2.6 / RFC 5246 Sections 7.1, 7.4.9 - Server ChangeCipherSpec and Finished not observed
+FAIL: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Encrypted application data missing in: client -> server, server -> client
+PASS: RFC 6347 Section 4.1.2 / RFC 5246 Section 6.2.3 - Record payload protection: payload bytes not observed in clear
+--- negative: checkers/negatives/one_direction.pcap replaces {capture}
+PASS: RFC 6347 Section 4.1.1 - DTLS exchange between loopback endpoints (127.0.0.1:62420 <-> 127.0.0.1:47555)
+PASS: RFC 6347 Section 4.2.1 / RFC 5246 Section 7.4.1.2 - ClientHello observed (client -> server)
+FAIL: RFC 6347 Section 4.2.1 / RFC 5246 Section 7.4.1.3 - ServerHello negotiating DTLS 1.2 ({254, 253}) not observed
+PASS: RFC 6347 Sections 4.1, 4.2.5, 4.2.6 / RFC 5246 Sections 7.1, 7.4.9 - Client ChangeCipherSpec and Finished observed (client -> server)
+FAIL: RFC 6347 Sections 4.1, 4.2.5, 4.2.6 / RFC 5246 Sections 7.1, 7.4.9 - Server ChangeCipherSpec and Finished not observed
+FAIL: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Encrypted application data missing in: server -> client
+PASS: RFC 6347 Section 4.1.2 / RFC 5246 Section 6.2.3 - Record payload protection: payload bytes not observed in clear
+--- negative: checkers/negatives/cleartext.pcap replaces {capture}
+FAIL: RFC 6347 Section 4.1.1 - No DTLS exchange between two loopback endpoints observed
+FAIL: RFC 6347 Section 4.2.1 / RFC 5246 Section 7.4.1.2 - ClientHello handshake message not observed
+FAIL: RFC 6347 Section 4.2.1 / RFC 5246 Section 7.4.1.3 - ServerHello negotiating DTLS 1.2 ({254, 253}) not observed
+FAIL: RFC 6347 Sections 4.1, 4.2.5, 4.2.6 / RFC 5246 Sections 7.1, 7.4.9 - Client ChangeCipherSpec and Finished not observed
+FAIL: RFC 6347 Sections 4.1, 4.2.5, 4.2.6 / RFC 5246 Sections 7.1, 7.4.9 - Server ChangeCipherSpec and Finished not observed
+FAIL: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Encrypted application data missing in: client -> server, server -> client
+FAIL: RFC 6347 Section 4.1.2 / RFC 5246 Section 6.2.3 - Cleartext payload bytes observed in UDP payload

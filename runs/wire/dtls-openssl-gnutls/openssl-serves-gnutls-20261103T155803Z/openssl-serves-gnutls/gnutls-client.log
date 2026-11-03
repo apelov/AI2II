@@ -1,0 +1,24 @@
+Processed 0 CA certificate(s).
+Resolving '127.0.0.1:47556'...
+Connecting to '127.0.0.1:47556'...
+- Certificate type: X.509
+- Got a certificate list of 1 certificates.
+- Certificate[0] info:
+ - subject `CN=localhost', issuer `CN=localhost', serial 0x766db95dfbfcd0eaba19806600d09690481e0721, EC/ECDSA key 256 bits, signed using ECDSA-SHA256, activated `2026-11-03 15:58:04 UTC', expires `2026-11-05 15:58:04 UTC', pin-sha256="mh7TUshbn5w31m/PWxp0YnWaT/W5cI+9Itc/t36PsGE="
+	Public Key ID:
+		sha1:4d259991f50949d3ffb367910431ad0b239599e4
+		sha256:9a1ed352c85b9f9c37d66fcf5b1a7462759a4ff5b9708fbd22d73fb77e8fb061
+	Public Key PIN:
+		pin-sha256:mh7TUshbn5w31m/PWxp0YnWaT/W5cI+9Itc/t36PsGE=
+
+- Status: The certificate is NOT trusted. The certificate issuer is unknown. The name in the certificate does not match the expected. 
+*** PKI verification of server certificate failed...
+- Description: (DTLS1.2-X.509)-(ECDHE-SECP256R1)-(ECDSA-SHA256)-(AES-256-GCM)
+- Session ID: 6B:2E:8B:80:C7:6B:6D:C2:A5:EC:1F:26:95:C3:A8:18:07:9B:3F:A4:A8:1E:AB:CC:79:91:0B:BC:E9:C4:5E:85
+- Options: extended master secret, safe renegotiation,
+- Handshake was completed
+
+- Simple Client Mode:
+
+AI2II-DTLS-PAYLOAD
+[adapter] echo received

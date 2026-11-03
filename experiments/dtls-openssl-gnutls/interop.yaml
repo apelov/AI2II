@@ -1,0 +1,76 @@
+# DTLS 1.2 interop between two independent, human-written stacks: OpenSSL 3.6 and GnuTLS 3.8 (Homebrew).
+# Both directions. Client peers export session keys (SSLKEYLOGFILE); the bundle keeps the encrypted
+# capture and a self-decrypting pcapng (DESIGN.md 24.21).
+# Peer adapters (peers/*.py, decrypt.py, make_cert.py): written by anthropic (Claude); they drive the stacks'
+# own CLIs and decide each client's exit status. Checkers: written by another family (see checkers/README.md).
+experiment: dtls-openssl-gnutls
+env_checks:
+  - {name: openssl, command: /opt/homebrew/bin/openssl version}
+  - {name: gnutls, command: /opt/homebrew/bin/gnutls-cli --version}
+  - {name: editcap, command: /Applications/Wireshark.app/Contents/MacOS/editcap --version}
+  - {name: tshark, command: /Applications/Wireshark.app/Contents/MacOS/tshark --version}
+peers:
+  - name: gnutls-server
+    path: .
+    family: human
+    under_test: true
+    build: python3 peers/make_cert.py /opt/homebrew/bin/openssl
+    binaries: [certs/cert.pem]
+    start: /opt/homebrew/bin/gnutls-serv --udp --echo -p 47555 --x509keyfile certs/key.pem --x509certfile certs/cert.pem
+    ready: {command: "grep -q listening {bundle}/gnutls-server.log", timeout_s: 10}
+  - name: openssl-client
+    path: .
+    family: human
+    under_test: true
+    env: {SSLKEYLOGFILE: "{secrets}/openssl-client.keys"}
+    secrets: [openssl-client.keys]
+    start: python3 peers/dtls_client.py --stack openssl --bin /opt/homebrew/bin/openssl --port 47555 --payload-file vectors/payload.bin
+  - name: openssl-server
+    path: .
+    family: human
+    under_test: true
+    build: python3 peers/make_cert.py /opt/homebrew/bin/openssl
+    binaries: [certs/cert.pem]
+    start: python3 peers/openssl_echo_server.py --bin /opt/homebrew/bin/openssl --port 47556
+    ready: {command: "grep -q READY {bundle}/openssl-server.log", timeout_s: 10}
+  - name: gnutls-client
+    path: .
+    family: human
+    under_test: true
+    env: {SSLKEYLOGFILE: "{secrets}/gnutls-client.keys"}
+    secrets: [gnutls-client.keys]
+    start: python3 peers/dtls_client.py --stack gnutls --bin /opt/homebrew/bin/gnutls-cli --port 47556 --payload-file vectors/payload.bin
+capture: {interface: lo0, filter: udp port 47555 or udp port 47556}
+decrypt:
+  command: python3 decrypt.py /Applications/Wireshark.app/Contents/MacOS/editcap {secrets} {capture} {decrypted}
+cells:
+  - {name: gnutls-serves-openssl, server: gnutls-server, clients: [openssl-client], checkers: [observes-dtls, decrypted-gnutls-serves-openssl], timeout_s: 30}
+  - {name: openssl-serves-gnutls, server: openssl-server, clients: [gnutls-client], checkers: [observes-dtls, decrypted-openssl-serves-gnutls], timeout_s: 30}
+checkers:
+  - name: observes-dtls
+    family: google
+    observes_capture: true
+    command: python3 checkers/observes_dtls.py {capture}
+    inputs: []
+    negatives:
+      - {input: checkers/negatives/unrelated.pcap, replaces: "{capture}"}
+      - {input: checkers/negatives/one_direction.pcap, replaces: "{capture}"}
+      - {input: checkers/negatives/cleartext.pcap, replaces: "{capture}", asserts: encrypted}
+  - name: decrypted-gnutls-serves-openssl
+    family: google
+    observes_capture: false
+    observes_decrypted: true
+    command: python3 checkers/decrypted_payload.py {decrypted} {inputs}/vectors/payload.bin
+    inputs: [vectors/payload.bin]
+    negatives:
+      - {input: checkers/negatives/openssl-client.keys.altered, replaces: "{secrets}/openssl-client.keys"}
+      - {input: checkers/negatives/other_payload.pcapng, replaces: "{decrypted}"}
+  - name: decrypted-openssl-serves-gnutls
+    family: google
+    observes_capture: false
+    observes_decrypted: true
+    command: python3 checkers/decrypted_payload.py {decrypted} {inputs}/vectors/payload.bin
+    inputs: [vectors/payload.bin]
+    negatives:
+      - {input: checkers/negatives/gnutls-client.keys.altered, replaces: "{secrets}/gnutls-client.keys"}
+      - {input: checkers/negatives/other_payload.pcapng, replaces: "{decrypted}"}

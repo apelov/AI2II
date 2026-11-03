@@ -1,0 +1,11 @@
+PASS: RFC 6347 Section 4.2.6 / RFC 5246 Section 7.4.9 - DTLS handshake completed (both client and server Finished decrypted)
+PASS: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Expected payload decrypted in application data (request: client -> server)
+PASS: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Expected payload decrypted in application data (echo: server -> client)
+--- negative: checkers/negatives/gnutls-client.keys.altered replaces {secrets}/gnutls-client.keys
+FAIL: RFC 6347 Section 4.2.6 / RFC 5246 Section 7.4.9 - DTLS handshake not completed (client Finished, server Finished not decrypted)
+FAIL: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Expected payload not found in decrypted application data (request: client -> server)
+FAIL: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Expected payload not found in decrypted application data (echo: server -> client)
+--- negative: checkers/negatives/other_payload.pcapng replaces {decrypted}
+PASS: RFC 6347 Section 4.2.6 / RFC 5246 Section 7.4.9 - DTLS handshake completed (both client and server Finished decrypted)
+FAIL: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Expected payload not found in decrypted application data (request: client -> server)
+FAIL: RFC 6347 Section 4.1 / RFC 5246 Section 10 - Expected payload not found in decrypted application data (echo: server -> client)

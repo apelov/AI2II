@@ -1,0 +1,6 @@
+UDP Echo Server listening on IPv6 :: port 47555...setsockopt(IP_DF) failed: Invalid argument
+done
+UDP Echo Server listening on IPv4 0.0.0.0 port 47555...done
+*** Processing 19 bytes command: AI2II-DTLS-PAYLOAD
+
+Exiting via signal 15

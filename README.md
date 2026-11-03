@@ -89,6 +89,13 @@ throwaway test keys; never run experiments with real keys.
 ran) and a `PASS` bundle with the capture, peer logs and an independent checker's results.
 Re-check them with `python3 -m wire verify-bundle <bundle>`. See `experiments/oscore-n1/README.md`.
 
+`runs/wire/dtls-openssl-gnutls/` holds two PASS bundles of DTLS 1.2 interop between two
+independent stacks, OpenSSL 3.6 and GnuTLS 3.8, one per direction. Each has the encrypted
+`capture.pcap` and a self-decrypting `capture-decrypted.pcapng` built from the clients'
+exported session keys (test keys; `contains_secrets: true`). The checkers come from a
+different model family than the peer adapters and reject a cleartext capture, wrong keys and
+a substituted decrypted view. See `experiments/dtls-openssl-gnutls/`.
+
 ## License
 
 BSD-3-Clause, see `LICENSE`.

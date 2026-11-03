@@ -1,0 +1,30 @@
+{
+  "cell": "openssl-serves-gnutls",
+  "verdict": "PASS",
+  "reason": "all peers exited 0, capture non-empty, every checker passed and rejected its negatives",
+  "peers": {
+    "openssl-server": {
+      "exit": -15,
+      "timed_out": false,
+      "binaries": {
+        "/Users/apelov/Work/AI2II/experiments/dtls-openssl-gnutls/certs/cert.pem": "9abb0dec3c01ac4592c48e015672ef6aee0f0c794a90071b45533fbaa8eaead6"
+      },
+      "commit": "46c816290880af5979f29755f5c2e91c36d23b46",
+      "dirty": false
+    },
+    "gnutls-client": {
+      "exit": 0,
+      "timed_out": false,
+      "binaries": {},
+      "commit": "46c816290880af5979f29755f5c2e91c36d23b46",
+      "dirty": false
+    }
+  },
+  "checkers": {
+    "observes-dtls": 0,
+    "decrypted-openssl-serves-gnutls": 0
+  },
+  "contains_secrets": true,
+  "started_at": "2026-11-03T15:58:03Z",
+  "ended_at": "2026-11-03T15:58:10Z"
+}

@@ -1,0 +1,9 @@
+Connecting to 127.0.0.1
+Can't use SSL_get_servername
+depth=0 CN=localhost
+verify error:num=18:self-signed certificate
+verify return:1
+depth=0 CN=localhost
+verify return:1
+AI2II-DTLS-PAYLOAD
+[adapter] echo received
