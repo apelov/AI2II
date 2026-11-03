@@ -8,6 +8,17 @@ evidence bundles that anyone can re-check.
 
 Prepared for the IETF Hackathon (champions: Alexander Pelov, Ivaylo Petrov).
 
+## What do you want to achieve?
+
+| I want to… | Start here |
+|---|---|
+| **Show that my implementation really interoperates**: a capture of the exchange, not just "tests pass" | [Quick start: wire evidence](#quick-start-wire-evidence): write an `interop.yaml` for your peers, run `python3 -m wire run`, share the bundle |
+| **See inside a secured protocol** (TLS, DTLS, QUIC, …): the encrypted trace *and* a decrypted one | Peers export their keys; the bundle gets `capture-decrypted.pcapng` next to `capture.pcap`. See `wire/example/tls_echo/` and DESIGN.md 24.21 |
+| **Check someone else's interop claim** | `python3 -m wire verify-bundle <bundle>`, then open `capture.pcap` in Wireshark and read `verdict.json` and the checker logs. Try it on `runs/wire/oscore-n1/` |
+| **Have AI agents implement a protocol (or a milestone) without trusting their claims** | [Quick start: orchestrator](#quick-start-orchestrator), `AGENTS.md` (role prompts) and DESIGN.md section 24 (the workflow) |
+| **Get an independent checker for my implementation** | A checker must come from a different model family than the code it checks, and must reject declared negative inputs. See `experiments/oscore-n1/checkers/` for a worked example |
+| **See how this was built and verified** | `milestones/*/attempts/` (build reports, verdicts), `reviews/`, `runs/` (logs the orchestrator wrote) |
+
 ## What is here
 
 | Path | What it is |

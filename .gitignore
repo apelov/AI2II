@@ -14,3 +14,4 @@ dist/
 
 # wire evidence bundles keep their build logs (DESIGN 24.20)
 !runs/wire/**/build/
+.DS_Store
