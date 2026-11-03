@@ -8,12 +8,14 @@ env_checks:
     command: pkg-config --exists libcoap-3 libcbor
   - name: multicast-route-lo0
     command: python3 check_route.py
+  - name: coap-pinned-commit
+    command: python3 check_coap_commit.py
 peers:
   - name: c-server
     path: coap
     family: anthropic
     under_test: true
-    build: make coap_server
+    build: make -B -f Makefile.vienna coap_server
     binaries: [coap_server]
     start: ./coap_server -r mult
     ready: {command: "grep -q Listening {bundle}/c-server.log", timeout_s: 15}
@@ -21,7 +23,7 @@ peers:
     path: coap
     family: anthropic
     under_test: true
-    build: make coap_client
+    build: make -B -f Makefile.vienna coap_client
     binaries: [coap_client]
     start: python3 ../clients_seq.py --clients 3 --notifs 3
 capture: {interface: lo0, filter: udp port 5683 or udp port 56830}

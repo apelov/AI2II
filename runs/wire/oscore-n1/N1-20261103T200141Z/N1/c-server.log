@@ -1,0 +1,79 @@
+Nov 03 21:01:42.064 DEBG created UDP  endpoint 0.0.0.0:5683
+CoAP Multicast Observe Server started with resource /mult. Listening on port 5683...
+Nov 03 21:01:42.406 DEBG ***127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : session 0x1011a8110: new incoming session
+Nov 03 21:01:42.406 DEBG ***EVENT: COAP_EVENT_SERVER_SESSION_NEW
+Nov 03 21:01:42.406 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : netif: recv   18 bytes
+v:1 t:CON c:GET i:f50c {be02892e5405e647} [ Observe:, Uri-Path:mult ]
+Nov 03 21:01:42.407 DEBG create new subscription 0x7610c4a760 key 0xfc01674a
+Nov 03 21:01:42.407 DEBG call custom handler for resource 'mult' (3)
+Nov 03 21:01:42.407 DEBG    127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : Async request indefinately delayed
+Nov 03 21:01:42.407 DEBG    127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : Async request triggered
+Nov 03 21:01:42.407 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : netif: sent    4 bytes
+v:1 t:ACK c:0.00 i:f50c {} [ ]
+Nov 03 21:01:42.407 DEBG call custom handler for resource 'mult' (3)
+Received observe registration request from 127.0.0.1:61147
+Sent 5.03 Informative Response with tp_info, ph_req, and last_notif (43 bytes CBOR)
+Nov 03 21:01:42.407 DEBG removed subscription 0x7610c4a760 with token 'be02892e5405e647' key 0xfc01674a
+Nov 03 21:01:42.407 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : netif: sent   58 bytes
+v:1 t:CON c:5.03 i:f73a {be02892e5405e647} [ Content-Format:12 ] :: binary data length 43
+<<a30083822081447f00000182208244e00001bb19ddfe441122334401470160546d756c740245456060ff30>>
+<<. . . .   . D . . . . .   . D . . . . . . . D . " 3 D . G . ` T m u l t . E E ` ` . 0 >>
+Nov 03 21:01:42.407 DEBG ** 127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : mid=0xf73a: added to retransmit queue (2594ms)
+Nov 03 21:01:42.407 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : netif: recv    4 bytes
+v:1 t:ACK c:0.00 i:f73a {} [ ]
+Nov 03 21:01:42.407 DEBG ** 127.0.0.1:5683 <-> 127.0.0.1:61147 (if1) UDP : mid=0xf73a: removed (1)
+Nov 03 21:01:47.157 DEBG ***0.0.0.0:61164 <-> 224.0.1.187:56830 UDP : session 0x1011a8610: created outgoing session
+Nov 03 21:01:47.158 DEBG ***0.0.0.0:61164 <-> 224.0.1.187:56830 UDP : session connected
+Broadcasting multicast notification: state=1 sequence=1 token=0x11223344 to 224.0.1.187:56830
+Broadcasting multicast notification: state=2 sequence=2 token=0x11223344 to 224.0.1.187:56830
+Broadcasting multicast notification: state=3 sequence=3 token=0x11223344 to 224.0.1.187:56830
+Nov 03 21:01:57.322 DEBG ***127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : session 0x1011a8b10: new incoming session
+Nov 03 21:01:57.322 DEBG ***EVENT: COAP_EVENT_SERVER_SESSION_NEW
+Nov 03 21:01:57.322 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : netif: recv   18 bytes
+v:1 t:CON c:GET i:e82b {d69d7c57d53616e2} [ Observe:, Uri-Path:mult ]
+Nov 03 21:01:57.322 DEBG create new subscription 0x7610c6e610 key 0xb83dfd97
+Nov 03 21:01:57.322 DEBG call custom handler for resource 'mult' (3)
+Nov 03 21:01:57.322 DEBG    127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : Async request indefinately delayed
+Nov 03 21:01:57.322 DEBG    127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : Async request triggered
+Nov 03 21:01:57.323 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : netif: sent    4 bytes
+v:1 t:ACK c:0.00 i:e82b {} [ ]
+Nov 03 21:01:57.323 DEBG call custom handler for resource 'mult' (3)
+Received observe registration request from 127.0.0.1:50750
+Sent 5.03 Informative Response with tp_info, ph_req, and last_notif (44 bytes CBOR)
+Nov 03 21:01:57.323 DEBG removed subscription 0x7610c6e610 with token 'd69d7c57d53616e2' key 0xb83dfd97
+Nov 03 21:01:57.323 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : netif: sent   59 bytes
+v:1 t:CON c:5.03 i:2c96 {d69d7c57d53616e2} [ Content-Format:12 ] :: binary data length 44
+<<a30083822081447f00000182208244e00001bb19ddfe441122334401470160546d756c74024645610360ff33>>
+<<. . . .   . D . . . . .   . D . . . . . . . D . " 3 D . G . ` T m u l t . F E a . ` . 3 >>
+Nov 03 21:01:57.323 DEBG ** 127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : mid=0x2c96: added to retransmit queue (2125ms)
+Nov 03 21:01:57.323 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : netif: recv    4 bytes
+v:1 t:ACK c:0.00 i:2c96 {} [ ]
+Nov 03 21:01:57.323 DEBG ** 127.0.0.1:5683 <-> 127.0.0.1:50750 (if1) UDP : mid=0x2c96: removed (1)
+Broadcasting multicast notification: state=4 sequence=4 token=0x11223344 to 224.0.1.187:56830
+Broadcasting multicast notification: state=5 sequence=5 token=0x11223344 to 224.0.1.187:56830
+Broadcasting multicast notification: state=6 sequence=6 token=0x11223344 to 224.0.1.187:56830
+Nov 03 21:02:12.512 DEBG ***127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : session 0x1011a8e10: new incoming session
+Nov 03 21:02:12.512 DEBG ***EVENT: COAP_EVENT_SERVER_SESSION_NEW
+Nov 03 21:02:12.512 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : netif: recv   18 bytes
+v:1 t:CON c:GET i:2a86 {fb86bd865f8e023b} [ Observe:, Uri-Path:mult ]
+Nov 03 21:02:12.512 DEBG create new subscription 0x7610c4a760 key 0xe9801ad8
+Nov 03 21:02:12.512 DEBG call custom handler for resource 'mult' (3)
+Nov 03 21:02:12.512 DEBG    127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : Async request indefinately delayed
+Nov 03 21:02:12.512 DEBG    127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : Async request triggered
+Nov 03 21:02:12.512 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : netif: sent    4 bytes
+v:1 t:ACK c:0.00 i:2a86 {} [ ]
+Nov 03 21:02:12.512 DEBG call custom handler for resource 'mult' (3)
+Received observe registration request from 127.0.0.1:61692
+Sent 5.03 Informative Response with tp_info, ph_req, and last_notif (44 bytes CBOR)
+Nov 03 21:02:12.512 DEBG removed subscription 0x7610c4a760 with token 'fb86bd865f8e023b' key 0xe9801ad8
+Nov 03 21:02:12.513 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : netif: sent   59 bytes
+v:1 t:CON c:5.03 i:2328 {fb86bd865f8e023b} [ Content-Format:12 ] :: binary data length 44
+<<a30083822081447f00000182208244e00001bb19ddfe441122334401470160546d756c74024645610660ff36>>
+<<. . . .   . D . . . . .   . D . . . . . . . D . " 3 D . G . ` T m u l t . F E a . ` . 6 >>
+Nov 03 21:02:12.513 DEBG ** 127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : mid=0x2328: added to retransmit queue (2344ms)
+Nov 03 21:02:12.513 DEBG *  127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : netif: recv    4 bytes
+v:1 t:ACK c:0.00 i:2328 {} [ ]
+Nov 03 21:02:12.513 DEBG ** 127.0.0.1:5683 <-> 127.0.0.1:61692 (if1) UDP : mid=0x2328: removed (1)
+Broadcasting multicast notification: state=7 sequence=7 token=0x11223344 to 224.0.1.187:56830
+Broadcasting multicast notification: state=8 sequence=8 token=0x11223344 to 224.0.1.187:56830
+Broadcasting multicast notification: state=9 sequence=9 token=0x11223344 to 224.0.1.187:56830

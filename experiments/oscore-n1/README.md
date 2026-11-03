@@ -14,15 +14,28 @@ clients run one after another (only one nosec C client can hold the multicast po
 
 ## Running it
 
-The peers are the C implementation from the CoAP multicast-notifications project. Check it
-out (or symlink it) as `coap/` in this directory; `coap/` is git-ignored so the experiment
-directory stays clean.
+The peers are the C implementation from the public CoAP multicast-notifications project,
+pinned at commit `9b7d288` (an env check refuses any other commit). Clone it as `coap/` in this
+directory; `coap/` is git-ignored so the experiment directory stays clean.
 
 ```sh
-git clone https://github.com/apelov/coap-multicast-notifications coap
+git clone https://github.com/apelov/coap-multicast-notifications experiments/oscore-n1/coap
+git -C experiments/oscore-n1/coap checkout 9b7d288
 python3 -m wire run experiments/oscore-n1/interop.yaml --cell N1 --out /tmp/n1
 ```
 
-The evidence in `runs/wire/oscore-n1/` was produced from a development commit of that
-implementation (`288cd27`, recorded in the bundle's `env.json`) that is not yet in the
-public repository, with the manifest of that time (client driver started by absolute path).
+Peers build with `make -B -f Makefile.vienna`, so every object is recompiled from the pinned
+sources. A clean build gives `coap_server` sha256 `8c1732a8…` and `coap_client` `64b821d8…`;
+compare with `env.json` of the bundle.
+
+## Evidence
+
+- `runs/wire/oscore-n1/N1-20261103T200141Z/`: **current PASS bundle**. Peers at public commit
+  `9b7d288`, clean, binaries rebuilt from source (hashes above).
+- `runs/wire/oscore-n1/N1-20261103T124304Z/`: first PASS bundle, kept as a lesson. Its binaries
+  were linked from stale object files in a development checkout (`make` reused `src/*.o` from July
+  and October), so its binary hashes (`50054f53…`, `dc12c36b…`) do not correspond to a clean build of
+  any commit. The wire runner deletes declared binaries, not intermediate build products: build
+  commands must force a clean build.
+- `runs/wire/oscore-n1/N1-20261103T120828Z-no-route/`: ENV bundle. The multicast route env check
+  failed; nothing was built or started.

@@ -1,0 +1,138 @@
+[driver] client1: start
+[client1] Nov 03 21:01:42.405 DEBG ***127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : session 0x100df06d0: created outgoing session
+[client1] Nov 03 21:01:42.406 DEBG ***127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : session connected
+[client1] Sending unicast registration GET request to coap://127.0.0.1:5683/mult (Observe=0)...
+[client1] Nov 03 21:01:42.406 DEBG *  127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : netif: sent   18 bytes
+[client1] v:1 t:CON c:GET i:f50c {be02892e5405e647} [ Observe:, Uri-Path:mult ]
+[client1] Nov 03 21:01:42.406 DEBG ** 127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : mid=0xf50c: added to retransmit queue (2563ms)
+[client1] Nov 03 21:01:42.407 DEBG *  127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : netif: recv    4 bytes
+[client1] v:1 t:ACK c:0.00 i:f50c {} [ ]
+[client1] Nov 03 21:01:42.407 DEBG ** 127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : mid=0xf50c: removed (1)
+[client1] Nov 03 21:01:42.407 DEBG ** 127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : lg_crcv 0x100df1b00 initialized - stateless token xxxx000000000001
+[client1] Nov 03 21:01:42.407 DEBG *  127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : netif: recv   58 bytes
+[client1] v:1 t:CON c:5.03 i:f73a {be02892e5405e647} [ Content-Format:12 ] :: binary data length 43
+[client1] <<a30083822081447f00000182208244e00001bb19ddfe441122334401470160546d756c740245456060ff30>>
+[client1] <<. . . .   . D . . . . .   . D . . . . . . . D . " 3 D . G . ` T m u l t . E E ` ` . 0 >>
+[client1] Received CoAP Response: Code 5.03
+[client1] Detected CBOR Informative Response (ObservationInfo).
+[client1] CBOR Payload Hex: A30083822081447F00000182208244E00001BB19DDFE441122334401470160546D756C740245456060FF30
+[client1] Decoded tp_info successfully:
+[client1]   Server Address:    127.0.0.1:5683
+[client1]   Multicast Address: 224.0.1.187:56830
+[client1]   Group Token:       0x11223344
+[client1] Nov 03 21:01:42.407 DEBG *  127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : netif: sent    4 bytes
+[client1] v:1 t:ACK c:0.00 i:f73a {} [ ]
+[client1] Closing unicast registration session...
+[client1] Nov 03 21:01:42.407 DEBG ** 127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : lg_crcv 0x100df1b00 released
+[client1] Nov 03 21:01:42.407 DEBG ***127.0.0.1:61147 <-> 127.0.0.1:5683 UDP : session 0x100df06d0: closed
+[client1] Nov 03 21:01:42.407 DEBG created UDP  endpoint 0.0.0.0:56830
+[client1] Joining multicast group 224.0.1.187 on interface default...
+[client1] Nov 03 21:01:42.412 DEBG added mcast group 224.0.1.187:56830
+[client1] Client is now listening for multicast notifications...
+[client1] Nov 03 21:01:47.158 DEBG ***224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : session 0x100df7c60: new incoming session
+[client1] Nov 03 21:01:47.158 DEBG ***EVENT: COAP_EVENT_SERVER_SESSION_NEW
+[client1] Nov 03 21:01:47.158 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client1] v:1 t:NON c:2.05 i:16c3 {11223344} [ Observe:1, Content-Format:text/plain ] :: '1'
+[client1] Received CoAP Response: Code 2.05
+[client1] [NOTIFICATION] sequence=1 state=1
+[client1] Nov 03 21:01:52.212 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client1] v:1 t:NON c:2.05 i:16c4 {11223344} [ Observe:2, Content-Format:text/plain ] :: '2'
+[client1] Received CoAP Response: Code 2.05
+[client1] [NOTIFICATION] sequence=2 state=2
+[client1] Nov 03 21:01:57.286 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client1] v:1 t:NON c:2.05 i:16c5 {11223344} [ Observe:3, Content-Format:text/plain ] :: '3'
+[client1] Received CoAP Response: Code 2.05
+[client1] [NOTIFICATION] sequence=3 state=3
+[driver] client1: 3/3 notifications
+[driver] client2: start
+[client2] Nov 03 21:01:57.321 DEBG ***127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : session 0x1034c44e0: created outgoing session
+[client2] Nov 03 21:01:57.322 DEBG ***127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : session connected
+[client2] Sending unicast registration GET request to coap://127.0.0.1:5683/mult (Observe=0)...
+[client2] Nov 03 21:01:57.322 DEBG *  127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : netif: sent   18 bytes
+[client2] v:1 t:CON c:GET i:e82b {d69d7c57d53616e2} [ Observe:, Uri-Path:mult ]
+[client2] Nov 03 21:01:57.322 DEBG ** 127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : mid=0xe82b: added to retransmit queue (2375ms)
+[client2] Nov 03 21:01:57.323 DEBG *  127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : netif: recv    4 bytes
+[client2] v:1 t:ACK c:0.00 i:e82b {} [ ]
+[client2] Nov 03 21:01:57.323 DEBG ** 127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : mid=0xe82b: removed (1)
+[client2] Nov 03 21:01:57.323 DEBG ** 127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : lg_crcv 0x1034c5820 initialized - stateless token xxxx000000000001
+[client2] Nov 03 21:01:57.323 DEBG *  127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : netif: recv   59 bytes
+[client2] v:1 t:CON c:5.03 i:2c96 {d69d7c57d53616e2} [ Content-Format:12 ] :: binary data length 44
+[client2] <<a30083822081447f00000182208244e00001bb19ddfe441122334401470160546d756c74024645610360ff33>>
+[client2] <<. . . .   . D . . . . .   . D . . . . . . . D . " 3 D . G . ` T m u l t . F E a . ` . 3 >>
+[client2] Received CoAP Response: Code 5.03
+[client2] Detected CBOR Informative Response (ObservationInfo).
+[client2] CBOR Payload Hex: A30083822081447F00000182208244E00001BB19DDFE441122334401470160546D756C74024645610360FF33
+[client2] Decoded tp_info successfully:
+[client2]   Server Address:    127.0.0.1:5683
+[client2]   Multicast Address: 224.0.1.187:56830
+[client2]   Group Token:       0x11223344
+[client2] Nov 03 21:01:57.323 DEBG *  127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : netif: sent    4 bytes
+[client2] v:1 t:ACK c:0.00 i:2c96 {} [ ]
+[client2] Closing unicast registration session...
+[client2] Nov 03 21:01:57.323 DEBG ** 127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : lg_crcv 0x1034c5820 released
+[client2] Nov 03 21:01:57.323 DEBG ***127.0.0.1:50750 <-> 127.0.0.1:5683 UDP : session 0x1034c44e0: closed
+[client2] Nov 03 21:01:57.323 DEBG created UDP  endpoint 0.0.0.0:56830
+[client2] Joining multicast group 224.0.1.187 on interface default...
+[client2] Nov 03 21:01:57.330 DEBG added mcast group 224.0.1.187:56830
+[client2] Client is now listening for multicast notifications...
+[client2] Nov 03 21:02:02.370 DEBG ***224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : session 0x1034cf630: new incoming session
+[client2] Nov 03 21:02:02.371 DEBG ***EVENT: COAP_EVENT_SERVER_SESSION_NEW
+[client2] Nov 03 21:02:02.371 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client2] v:1 t:NON c:2.05 i:16c6 {11223344} [ Observe:4, Content-Format:text/plain ] :: '4'
+[client2] Received CoAP Response: Code 2.05
+[client2] [NOTIFICATION] sequence=4 state=4
+[client2] Nov 03 21:02:07.435 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client2] v:1 t:NON c:2.05 i:16c7 {11223344} [ Observe:5, Content-Format:text/plain ] :: '5'
+[client2] Received CoAP Response: Code 2.05
+[client2] [NOTIFICATION] sequence=5 state=5
+[client2] Nov 03 21:02:12.503 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client2] v:1 t:NON c:2.05 i:16c8 {11223344} [ Observe:6, Content-Format:text/plain ] :: '6'
+[client2] Received CoAP Response: Code 2.05
+[client2] [NOTIFICATION] sequence=6 state=6
+[driver] client2: 3/3 notifications
+[driver] client3: start
+[client3] Nov 03 21:02:12.512 DEBG ***127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : session 0x1007d0560: created outgoing session
+[client3] Nov 03 21:02:12.512 DEBG ***127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : session connected
+[client3] Sending unicast registration GET request to coap://127.0.0.1:5683/mult (Observe=0)...
+[client3] Nov 03 21:02:12.512 DEBG *  127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : netif: sent   18 bytes
+[client3] v:1 t:CON c:GET i:2a86 {fb86bd865f8e023b} [ Observe:, Uri-Path:mult ]
+[client3] Nov 03 21:02:12.512 DEBG ** 127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : mid=0x2a86: added to retransmit queue (2438ms)
+[client3] Nov 03 21:02:12.512 DEBG *  127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : netif: recv    4 bytes
+[client3] v:1 t:ACK c:0.00 i:2a86 {} [ ]
+[client3] Nov 03 21:02:12.512 DEBG ** 127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : mid=0x2a86: removed (1)
+[client3] Nov 03 21:02:12.512 DEBG ** 127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : lg_crcv 0x1007d1420 initialized - stateless token xxxx000000000001
+[client3] Nov 03 21:02:12.513 DEBG *  127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : netif: recv   59 bytes
+[client3] v:1 t:CON c:5.03 i:2328 {fb86bd865f8e023b} [ Content-Format:12 ] :: binary data length 44
+[client3] <<a30083822081447f00000182208244e00001bb19ddfe441122334401470160546d756c74024645610660ff36>>
+[client3] <<. . . .   . D . . . . .   . D . . . . . . . D . " 3 D . G . ` T m u l t . F E a . ` . 6 >>
+[client3] Received CoAP Response: Code 5.03
+[client3] Detected CBOR Informative Response (ObservationInfo).
+[client3] CBOR Payload Hex: A30083822081447F00000182208244E00001BB19DDFE441122334401470160546D756C74024645610660FF36
+[client3] Decoded tp_info successfully:
+[client3]   Server Address:    127.0.0.1:5683
+[client3]   Multicast Address: 224.0.1.187:56830
+[client3]   Group Token:       0x11223344
+[client3] Nov 03 21:02:12.513 DEBG *  127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : netif: sent    4 bytes
+[client3] v:1 t:ACK c:0.00 i:2328 {} [ ]
+[client3] Closing unicast registration session...
+[client3] Nov 03 21:02:12.513 DEBG ** 127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : lg_crcv 0x1007d1420 released
+[client3] Nov 03 21:02:12.513 DEBG ***127.0.0.1:61692 <-> 127.0.0.1:5683 UDP : session 0x1007d0560: closed
+[client3] Nov 03 21:02:12.513 DEBG created UDP  endpoint 0.0.0.0:56830
+[client3] Joining multicast group 224.0.1.187 on interface default...
+[client3] Nov 03 21:02:12.516 DEBG added mcast group 224.0.1.187:56830
+[client3] Client is now listening for multicast notifications...
+[client3] Nov 03 21:02:17.606 DEBG ***224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : session 0x1007d9cc0: new incoming session
+[client3] Nov 03 21:02:17.606 DEBG ***EVENT: COAP_EVENT_SERVER_SESSION_NEW
+[client3] Nov 03 21:02:17.606 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client3] v:1 t:NON c:2.05 i:16c9 {11223344} [ Observe:7, Content-Format:text/plain ] :: '7'
+[client3] Received CoAP Response: Code 2.05
+[client3] [NOTIFICATION] sequence=7 state=7
+[client3] Nov 03 21:02:22.672 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client3] v:1 t:NON c:2.05 i:16ca {11223344} [ Observe:8, Content-Format:text/plain ] :: '8'
+[client3] Received CoAP Response: Code 2.05
+[client3] [NOTIFICATION] sequence=8 state=8
+[client3] Nov 03 21:02:27.729 DEBG *  224.0.1.187:56830 <-> 127.0.0.1:5683 (if1) UDP : netif: recv   13 bytes
+[client3] v:1 t:NON c:2.05 i:16cb {11223344} [ Observe:9, Content-Format:text/plain ] :: '9'
+[client3] Received CoAP Response: Code 2.05
+[client3] [NOTIFICATION] sequence=9 state=9
+[driver] client3: 3/3 notifications

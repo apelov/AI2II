@@ -1,0 +1,4 @@
+clang -Wall -Wextra -O2 -I/opt/homebrew/Cellar/libcoap/4.3.5b/include -I/opt/homebrew/Cellar/libcbor/0.14.0/include -c src/client.c -o src/client.o
+clang -Wall -Wextra -O2 -I/opt/homebrew/Cellar/libcoap/4.3.5b/include -I/opt/homebrew/Cellar/libcbor/0.14.0/include -c src/cbor_helper.c -o src/cbor_helper.o
+clang -Wall -Wextra -O2 -I/opt/homebrew/Cellar/libcoap/4.3.5b/include -I/opt/homebrew/Cellar/libcbor/0.14.0/include -c src/oscore_helper.c -o src/oscore_helper.o
+clang src/client.o src/cbor_helper.o src/oscore_helper.o -o coap_client -L/opt/homebrew/Cellar/libcoap/4.3.5b/lib -lcoap-3-openssl -L/opt/homebrew/Cellar/libcbor/0.14.0/lib -lcbor -Wl,-flat_namespace -ldl

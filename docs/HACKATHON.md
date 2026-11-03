@@ -57,6 +57,10 @@ checkers:
       - {input: checkers/negatives/one_direction.pcap, replaces: "{capture}"}
 ```
 
+Make `build` force a **clean** build (`make -B`, `cargo build` after `cargo clean`, ...): the
+runner deletes the declared binaries, not intermediate objects, and a binary linked from stale
+`.o` files is a hollow PASS (it happened to our first OSCORE bundle).
+
 Commands are argv strings without a shell (no pipes or `&&`; use `env:` for variables).
 Clients of a cell start together; if they must run in sequence, make one client peer a
 small driver script (see `experiments/oscore-n1/clients_seq.py`). One cell per
