@@ -1,0 +1,78 @@
+milestone: M10
+attempt: 1
+role: verifier
+agent: codex
+family: openai
+model: gpt-6-sol
+prompt_version: 1
+result: success
+commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a
+duration_seconds: 392.398
+timestamp: '2026-11-05T08:33:23.962827Z'
+candidates:
+- milestone: M10
+  attempt: 1
+  role: verifier
+  agent: agy-gemini
+  family: google
+  model: gemini-3.8-flash-high
+  prompt_version: 1
+  result: no-record
+  commit: 5435c346b43feaea4df070e4a2e46cb5f92c3bfe
+  duration_seconds: 516.739
+  timestamp: '2026-11-04T19:19:04.805089Z'
+- milestone: M10
+  attempt: 1
+  role: verifier
+  agent: agy-gemini
+  family: google
+  model: gemini-3.8-flash-high
+  prompt_version: 1
+  result: no-record
+  commit: 5435c346b43feaea4df070e4a2e46cb5f92c3bfe
+  duration_seconds: 1051.3
+  timestamp: '2026-11-04T19:37:06.121206Z'
+- milestone: M10
+  attempt: 1
+  role: verifier
+  agent: agy-gemini
+  family: google
+  model: gemini-3.8-flash-high
+  prompt_version: 1
+  result: no-record
+  commit: 5435c346b43feaea4df070e4a2e46cb5f92c3bfe
+  duration_seconds: 197.945
+  timestamp: '2026-11-04T19:40:51.914766Z'
+- milestone: M10
+  attempt: 1
+  role: verifier
+  agent: agy-gemini
+  family: google
+  model: gemini-3.8-flash-high
+  prompt_version: 1
+  result: no-record
+  commit: 47f2561a07528e500e510e082e26c692b264d770
+  duration_seconds: 1122.95
+  timestamp: '2026-11-04T20:00:01.525550Z'
+- milestone: M10
+  attempt: 1
+  role: verifier
+  agent: codex
+  family: openai
+  model: gpt-6-sol
+  prompt_version: 1
+  result: success
+  commit: b171992ad74fe97055c569e55f94e6cc2dc06a4b
+  duration_seconds: 461.604
+  timestamp: '2026-11-04T21:12:33.652517Z'
+- milestone: M10
+  attempt: 1
+  role: verifier
+  agent: codex
+  family: openai
+  model: gpt-6-sol
+  prompt_version: 1
+  result: success
+  commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a
+  duration_seconds: 392.398
+  timestamp: '2026-11-05T08:33:23.962827Z'

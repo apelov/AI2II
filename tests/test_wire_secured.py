@@ -44,16 +44,32 @@ def free_port() -> int:
         return s.getsockname()[1]
 
 
+def copy_tracked(src: Path, dst: Path) -> None:
+    """Copy only the git-tracked files of an example (build output such as bin/ stays behind)."""
+    names = subprocess.run(
+        ["git", "ls-files", "-z", "."],
+        cwd=src,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split("\0")
+    for name in filter(None, names):
+        (dst / name).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src / name, dst / name)
+
+
 def make_exp(tmp: Path, edits=(), files=None) -> Path:
     """Copy the TLS example, give it a free port, apply (old, new) manifest edits, git-commit it."""
     exp = tmp / "exp"
-    shutil.copytree(EXAMPLE, exp, ignore=shutil.ignore_patterns("__pycache__"))
+    copy_tracked(EXAMPLE, exp)
     port = free_port()
     text = (exp / "interop.yaml").read_text()
     for old, new in edits:
         assert old in text, old
         text = text.replace(old, new)
-    text = text.replace("47443", str(port)).replace("lo0", IFACE)
+    text = text.replace("47443", str(port)).replace(
+        "interface: loopback", f"interface: {IFACE}"
+    )
     (exp / "interop.yaml").write_text(text)
     for name, content in (files or {}).items():
         (exp / name).parent.mkdir(parents=True, exist_ok=True)

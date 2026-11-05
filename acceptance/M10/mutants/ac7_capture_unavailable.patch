@@ -1,0 +1,11 @@
+diff --git a/wire/capture.py b/wire/capture.py
+--- a/wire/capture.py
++++ b/wire/capture.py
+@@ -49,6 +49,7 @@ def tcpdump() -> str:
+ 
+ 
+ def start(interface: str, filt: str, pcap: Path, log: Path) -> subprocess.Popen[bytes]:
++    raise CaptureError("mutant: capture unavailable")
+     argv = [tcpdump(), "-i", interface, "-n", "-U", "--immediate-mode", "-w", str(pcap)]
+     if filt:
+         argv += ["--", filt]

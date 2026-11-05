@@ -1,0 +1,57 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M10/test_m10.py::test_ac6_builder_copies_ignore_untracked_build_output
+# commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a + mutant:ac6_copy_untracked_build_output
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_ac6_builder_copies_ignore_untracked_build_output _____________
+
+    def test_ac6_builder_copies_ignore_untracked_build_output():
+        for source in (UDP, TLS):
+            assert "interface: loopback" in (source / "interop.yaml").read_text()
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            sandbox = tmp / "repo"
+            tracked_copy(ROOT, sandbox)
+            assert command("git", "init", "-q", cwd=sandbox).returncode == 0
+            assert command("git", "add", "-A", cwd=sandbox).returncode == 0
+            assert (
+                command(
+                    "git",
+                    "-c",
+                    "user.email=v@example.invalid",
+                    "-c",
+                    "user.name=v",
+                    "commit",
+                    "-qm",
+                    "snapshot",
+                    cwd=sandbox,
+                ).returncode
+                == 0
+            )
+            for source in (
+                sandbox / "wire/example/udp_echo",
+                sandbox / "wire/example/tls_echo",
+            ):
+                marker = source / "bin" / "m10_untracked_marker"
+                marker.parent.mkdir(exist_ok=True)
+                marker.write_text("stale build output")
+            for module_name, example_dir in (
+                ("test_wire", "udp_echo"),
+                ("test_wire_secured", "tls_echo"),
+            ):
+                path = sandbox / "tests" / f"{module_name}.py"
+                spec = importlib.util.spec_from_file_location(module_name, path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                copied = tmp / f"copied-{example_dir}"
+                module.copy_tracked(sandbox / "wire/example" / example_dir, copied)
+>               assert not (copied / "bin/m10_untracked_marker").exists()
+E               AssertionError: assert not True
+E                +  where True = exists()
+E                +    where exists = (PosixPath('/var/folders/31/7x197zc125z0cvx2x2kqftxm0000gn/T/tmpl6co2n7a/copied-udp_echo') / 'bin/m10_untracked_marker').exists
+
+acceptance/M10/test_m10.py:368: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M10/test_m10.py::test_ac6_builder_copies_ignore_untracked_build_output
+1 failed in 0.60s
+
+# exit: 1

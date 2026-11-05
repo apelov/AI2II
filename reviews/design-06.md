@@ -1,0 +1,13 @@
+# Design review 06
+
+Scope: the new “Portability and summaries” paragraph in DESIGN.md 24.20 at commit `23d2272`. I did not write it. This is a design review, not a successful wire run; I produced no orchestrator run log.
+
+The `loopback` alias serves the portable example goal without adding protocol knowledge to `wire/`. A read-only summary of existing bundles serves the comparison goal without a new service or dependency. Neither component appears unnecessary or prematurely general. The clean-build rule addresses the documented stale-object failure, but as a rule alone it has no enforcing component. That limit is stated accurately in the paragraph.
+
+**Change requested — the first-run claim needs an operational boundary.** The paragraph says the bundled examples will work unchanged on macOS and Linux. The alias only fixes the interface name. `wire/manifest.py` imports PyYAML; `wire/run.py` requires `git` and a clean Git worktree before capture; `wire/capture.py` requires a runnable, privileged `tcpdump`. The TLS example additionally declares `editcap` and `tshark` env checks. The existing README lists some prerequisites, but the new claim does not say which example or prepared host it covers. Define “first run” as the UDP example on a host with these prerequisites and capture permission, or add a concrete bootstrap path that makes the broader clean-host claim true. This is the goal currently served by no component in the proposed change.
+
+**Change requested — summary trust semantics.** The design says a bundle that fails `verify-bundle` is “not verified” but still prints its verdict. Specify that verdict, reason and commit fields from such a bundle are untrusted claims, and how a missing or malformed `verdict.json` is represented. Otherwise a tampered PASS can appear in the same comparison column as verified PASS with only a boolean distinction. An early falsification is to alter `verdict.json` in an otherwise valid bundle, then summarize it in text and JSON alongside an intact bundle.
+
+**Self-challenge.** The riskiest assumption is that an interface alias suffices for the promised clean-host first run; capture privilege, tool availability and the clean-worktree rule can independently block it. Run the UDP quick start from a fresh checkout on both supported hosts, with the documented prerequisites installed, and inspect the actual verdict and resolved interface. Also test absent prerequisites to ensure the failure is explained rather than presented as a portability success. No protocol-specific behavior has leaked into the proposed generic interface resolution or summary.
+
+Outcome: CHANGES_REQUESTED

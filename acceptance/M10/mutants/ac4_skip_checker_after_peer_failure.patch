@@ -1,0 +1,13 @@
+diff --git a/wire/run.py b/wire/run.py
+--- a/wire/run.py
++++ b/wire/run.py
+@@ -183,8 +183,6 @@ class CellRun:
+         self.env["capture_packets"] = packets
+         if failure:
+-            if (
+-                packets
+-            ):  # keep the checkers' view of the wire next to the peer's failure
++            if False and packets:  # mutant: skip checkers after peer failure
+                 self.run_checkers()
+             return "FAIL", failure
+         if not packets:

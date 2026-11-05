@@ -1,0 +1,35 @@
+milestone: M10
+attempt: 1
+commit: 5435c346b43feaea4df070e4a2e46cb5f92c3bfe
+criteria_version: c967e2117dcdd0f6d7e7ac5ce45348496ca8d049952f0a74c8042eaaeebc384d
+verifier: {role: verifier, family: openai, model: gpt-6}
+verdict: PASS
+acceptance:
+  AC1: {result: PASS, tests: [acceptance/M10/test_m10.py::test_ac1_macos_loopback_capture_and_pass], run: runs/M10/01/5435c346b43f/acc.log}
+  AC2: {result: PASS, tests: [acceptance/M10/test_m10.py::test_ac2_linux_container_pass_and_hardcoded_lo0_blocked], run: runs/M10/01/5435c346b43f/acc.log}
+  AC3: {result: PASS, tests: [acceptance/M10/test_m10.py::test_ac3_unknown_os_blocks_before_peer_start], run: runs/M10/01/5435c346b43f/acc.log}
+  AC4: {result: PASS, tests: [acceptance/M10/test_m10.py::test_ac4_corruption_causes_failure_and_checker_observes_pcap], run: runs/M10/01/5435c346b43f/acc.log}
+  AC5: {result: PASS, tests: [acceptance/M10/test_m10.py::test_ac5_summary_integrity_missing_and_empty], run: runs/M10/01/5435c346b43f/acc.log}
+  AC6: {result: PASS, tests: [acceptance/M10/test_m10.py::test_ac6_builder_copies_ignore_untracked_build_output], run: runs/M10/01/5435c346b43f/acc.log}
+  AC7: {result: PASS, tests: [acceptance/M10/test_m10.py::test_ac7_prior_acceptance_suites_and_change_control], run: runs/M10/01/5435c346b43f/acc.log}
+validity:
+  AC1: {fails_on: "mutant:ac1_ac2_loopback_passthrough", run: runs/M10/01/5435c346b43f/validity-AC1.log}
+  AC2: {fails_on: "mutant:ac1_ac2_loopback_passthrough", run: runs/M10/01/5435c346b43f/validity-AC2.log}
+  AC3: {fails_on: "mutant:ac3_unknown_os_unblocked", run: runs/M10/01/5435c346b43f/validity-AC3.log}
+  AC4: {fails_on: "mutant:ac4_skip_checker_after_peer_failure", run: runs/M10/01/5435c346b43f/validity-AC4.log}
+  AC5: {fails_on: "mutant:ac5_trust_tampered_bundle", run: runs/M10/01/5435c346b43f/validity-AC5.log}
+  AC6: {fails_on: "mutant:ac6_copy_untracked_build_output", run: runs/M10/01/5435c346b43f/validity-AC6.log}
+  AC7: {fails_on: "mutant:ac7_capture_unavailable", run: runs/M10/01/5435c346b43f/validity-AC7.log}
+findings: []
+claim_audit:
+  - {claim: "AC1 macOS loopback and echo PASS", holds: true, ref: runs/M10/01/5435c346b43f/acc.log}
+  - {claim: "AC2 Linux behavior by construction", holds: true, ref: runs/M10/01/5435c346b43f/acc.log}
+  - {claim: "AC3 unresolved loopback blocks before peer start", holds: true, ref: runs/M10/01/5435c346b43f/acc.log}
+  - {claim: "AC4 broken echo produces FAIL with checker log", holds: true, ref: runs/M10/01/5435c346b43f/acc.log}
+  - {claim: "AC5 summarize and tamper detection", holds: true, ref: runs/M10/01/5435c346b43f/acc.log}
+  - {claim: "AC6 tracked file copies", holds: true, ref: runs/M10/01/5435c346b43f/acc.log}
+  - {claim: "AC7 M08 and M09 acceptance compatibility", holds: true, ref: runs/M10/01/5435c346b43f/acc.log}
+  - {claim: "Builder could not run AC2 without a Linux container", holds: true, note: "This was a builder environment limit; verifier acceptance ran in a Linux container.", ref: runs/M10/01/5435c346b43f/acc.log}
+  - {claim: "One pre-existing SKIP line in a separate unit run", holds: false, note: "The orchestrator build log records 74 passed and no skip; the separate local run cannot be independently verified.", ref: runs/M10/01/5435c346b43f/build.log}
+  - {claim: "No design deviations", holds: true, note: "No deviation found against DESIGN.md 24.20."}
+required_fixes: []

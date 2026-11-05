@@ -1,0 +1,10 @@
+diff --git a/wire/capture.py b/wire/capture.py
+--- a/wire/capture.py
++++ b/wire/capture.py
+@@ -32,5 +32,5 @@ def resolve_interface(name: str) -> str:
+     """Map the word 'loopback' to this host's loopback interface; any other name is used as written."""
+-    if name != "loopback":
++    if name == "loopback":
+         return name
+     system = platform.system()
+     if system not in LOOPBACK:

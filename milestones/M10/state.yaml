@@ -1,0 +1,114 @@
+status: COMPLETE
+criteria_version: c967e2117dcdd0f6d7e7ac5ce45348496ca8d049952f0a74c8042eaaeebc384d
+attempt: 1
+attempts:
+- n: 1
+  base: 5ef02fae38681e3fc17d86cbb66bf288a31cdcc6
+  branch: m/M10/a01-build
+  worktree: .worktrees/M10-a01-build
+  builder:
+    agent: claude-sonnet
+    family: anthropic
+    model: claude-sonnet-5-5
+    session: dispatch-479d88678032
+  built: 5435c346b43feaea4df070e4a2e46cb5f92c3bfe
+  verify_branch: m/M10/a01-verify
+  verify_worktree: .worktrees/M10-a01-verify
+  verifier:
+    agent: codex
+    family: openai
+    model: gpt-6-sol
+    session: dispatch-24dcfee542a4
+  verdict: PASS
+escalations: []
+history:
+- at: '2026-11-04T15:33:58.637449Z'
+  from: DRAFT
+  to: REVIEWED
+  note: reviewed by reviews/milestones-12.md
+- at: '2026-11-04T15:53:38.116469Z'
+  from: REVIEWED
+  to: APPROVED
+  note: G2 approvals/G2-M10.md; criteria_version c967e2117dcd
+- at: '2026-11-04T15:53:38.364244Z'
+  from: APPROVED
+  to: READY
+  note: every dependency is COMPLETE
+- at: '2026-11-04T15:55:09.084270Z'
+  from: READY
+  to: BUILDING
+  note: attempt 01 started by claude-sonnet
+- at: '2026-11-04T15:55:32.819891Z'
+  from: BUILDING
+  to: BUILDING
+  note: builder candidate claude-sonnet no-record (runs/M10/01/5ef02fae3868/dispatch-builder-01-claude-sonnet.log)
+- at: '2026-11-04T15:57:05.202732Z'
+  from: BUILDING
+  to: BUILDING
+  note: 'operator retry of builder candidate claude-sonnet after failed dispatch:
+    no-record (runs/M10/01/5ef02fae3868/dispatch-builder-retry-1793807790-claude-sonnet.log)'
+- at: '2026-11-04T18:46:52.908762Z'
+  from: BUILDING
+  to: BUILDING
+  note: 'operator retry of builder candidate claude-sonnet after failed dispatch:
+    failure (runs/M10/01/5ef02fae3868/dispatch-builder-retry-1793807862-claude-sonnet.log)'
+- at: '2026-11-04T19:06:43.184082Z'
+  from: BUILDING
+  to: BUILDING
+  note: 'operator retry of builder candidate claude-sonnet after failed dispatch:
+    success (runs/M10/01/5ef02fae3868/dispatch-builder-retry-1793818047-claude-sonnet.log)'
+- at: '2026-11-04T19:10:06.389402Z'
+  from: BUILDING
+  to: BUILT
+  note: built at 5435c346b43f (build.log)
+- at: '2026-11-04T19:10:27.957459Z'
+  from: BUILT
+  to: VERIFYING
+  note: attempt 01 verification started by agy-gemini
+- at: '2026-11-04T19:19:04.807925Z'
+  from: VERIFYING
+  to: VERIFYING
+  note: verifier candidate agy-gemini no-record (runs/M10/01/5ef02fae3868/dispatch-verifier-01-agy-gemini.log)
+- at: '2026-11-04T19:37:06.124407Z'
+  from: VERIFYING
+  to: VERIFYING
+  note: 'operator retry of verifier candidate agy-gemini after failed dispatch: no-record
+    (runs/M10/01/5ef02fae3868/dispatch-verifier-retry-1793819974-agy-gemini.log)'
+- at: '2026-11-04T19:40:51.918570Z'
+  from: VERIFYING
+  to: VERIFYING
+  note: 'operator retry of verifier candidate agy-gemini after failed dispatch: no-record
+    (runs/M10/01/5ef02fae3868/dispatch-verifier-retry-1793821053-agy-gemini.log)'
+- at: '2026-11-04T20:00:01.529371Z'
+  from: VERIFYING
+  to: VERIFYING
+  note: 'operator retry of verifier candidate agy-gemini after failed dispatch: no-record
+    (runs/M10/01/5ef02fae3868/dispatch-verifier-retry-1793821278-agy-gemini.log)'
+- at: '2026-11-04T21:04:51.975024Z'
+  from: VERIFYING
+  to: VERIFYING
+  note: verifier is now codex (fallback candidate)
+- at: '2026-11-04T21:12:33.656061Z'
+  from: VERIFYING
+  to: VERIFYING
+  note: 'operator retry of verifier candidate codex after failed dispatch: success
+    (runs/M10/01/5ef02fae3868/dispatch-verifier-retry-1793826292-codex.log)'
+- at: '2026-11-05T08:26:51.505547Z'
+  from: VERIFYING
+  to: VERIFYING
+  note: verifier is now codex (fallback candidate)
+- at: '2026-11-05T08:33:23.966803Z'
+  from: VERIFYING
+  to: VERIFYING
+  note: 'operator retry of verifier candidate codex after failed dispatch: success
+    (runs/M10/01/5ef02fae3868/dispatch-verifier-retry-1793867211-codex.log)'
+- at: '2026-11-05T08:49:56.872170Z'
+  from: VERIFYING
+  to: VERIFIED
+  note: PASS confirmed at 3e16f01a6913
+- at: '2026-11-05T09:10:45.489206Z'
+  from: VERIFIED
+  to: COMPLETE
+  note: merged m/M10/a01-verify; suites passed
+reviewed_spec_hash: c967e2117dcdd0f6d7e7ac5ce45348496ca8d049952f0a74c8042eaaeebc384d
+milestone: M10

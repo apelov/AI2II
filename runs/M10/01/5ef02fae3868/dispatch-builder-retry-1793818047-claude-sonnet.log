@@ -1,0 +1,33 @@
+# command: claude -p --model sonnet --permission-mode bypassPermissions < {prompt_file}
+M10 is built and committed as `5435c34` on `m/M10/a01-build`. The worktree is clean and `build.md` is written. I could not run AC2, the Linux container case.
+
+My own runs gave these results; the orchestrator's re-run is the real evidence:
+- **Builder tests:** 69 passed in the full `tests` run, before I added the new test file. The new `tests/test_wire_m10.py` passes separately (5 tests). The full run printed one `SKIP: Seatbelt cannot be applied here` line, which comes from existing tests.
+- **Acceptance suites:** `acceptance/M08` and `acceptance/M09` pass (21 tests).
+- **AC2:** it holds by construction. Linux maps `loopback` to `lo`. A manifest that hardcodes `lo0` makes tcpdump fail to start, which gives BLOCKED with a message naming the interface.
+- **Commit noise:** the commit printed a `packed-refs.lock` permission error, but `HEAD` and the branch both point at `5435c34`.
+
+What changed:
+- **Loopback resolution:** `capture.interface: loopback` resolves to `lo0` on macOS and the BSDs and `lo` on Linux. `env.json` records the result under `capture_interface`.
+- **Unresolvable interface:** the cell is BLOCKED (exit 3) with a reason naming the interface. This happens before any build or peer starts.
+- **Checkers after a peer failure:** when a peer fails but the capture is non-empty, the checkers still run and keep their logs. The verdict stays FAIL.
+- **`python3 -m wire summarize <dir> [--json]`:** it is new in `wire/summarize.py` and starts no subprocess. A bundle that fails `verify-bundle` shows as `UNVERIFIED(...)`, with `verified: false` and the claimed fields under `claimed`. A missing or malformed `verdict.json` gives `verdict: null` and an `error`. An empty directory exits 2.
+- **Examples:** `udp_echo` and `tls_echo` now use `interface: loopback`. `udp_echo` has a new `echo-broken` cell whose server flips one byte of the echo. It yields FAIL, and `observes-echo` rejects the exchange.
+- **Test copies:** `tests/test_wire.py` and `tests/test_wire_secured.py` now copy only git-tracked example files.
+
+Limitations (also in `build.md`):
+- **Experiment field:** `summarize` shows the experiment as its recorded path, because the manifest name isn't stored in the bundle.
+- **Interface map:** only Darwin, Linux, FreeBSD, OpenBSD and NetBSD are mapped; any other OS is BLOCKED.
+- **Decrypt step:** it is skipped on a peer failure, so a checker that needs decrypted output fails there. The verdict is FAIL either way.
+
+There are no design deviations.
+
+# exit: 0
+# discarded uncommitted leftovers:
+!! .ruff_cache/
+!! __pycache__/
+!! acceptance/M08/__pycache__/
+!! acceptance/M09/__pycache__/
+!! src/_shims/__pycache__/
+!! tests/__pycache__/
+!! wire/__pycache__/

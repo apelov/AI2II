@@ -12,7 +12,10 @@ Prepared for the **IETF 127 Hackathon, San Francisco, 14–15 November 2026** (c
 
 | I want to… | Start here |
 |---|---|
+| **See it work in one command** | `./demo.sh`: runs an example under capture, verifies the bundle and explains it |
 | **Take part in the Hackathon** | [`docs/HACKATHON.md`](docs/HACKATHON.md): the runbook, from setup to a shareable bundle |
+| **Understand a bundle file by file** | [`docs/BUNDLE.md`](docs/BUNDLE.md) |
+| **Report Hackathon results** | [`docs/SUBMISSION.md`](docs/SUBMISSION.md) |
 | **Show that my implementation really interoperates**: a capture of the exchange, not just "tests pass" | [Quick start: wire evidence](#quick-start-wire-evidence): write an `interop.yaml` for your peers, run `python3 -m wire run`, share the bundle |
 | **See inside a secured protocol** (TLS, DTLS, QUIC, …): the encrypted trace *and* a decrypted one | Peers export their keys; the bundle gets `capture-decrypted.pcapng` next to `capture.pcap`. See `wire/example/tls_echo/` and DESIGN.md 24.21 |
 | **Check someone else's interop claim** | `python3 -m wire verify-bundle <bundle>`, then open `capture.pcap` in Wireshark and read `verdict.json` and the checker logs. Try it on `runs/wire/oscore-n1/` |
@@ -43,6 +46,7 @@ Prepared for the **IETF 127 Hackathon, San Francisco, 14–15 November 2026** (c
 | M08 Wire evidence bundles and checked test vectors | COMPLETE |
 | M09 Secured protocols: exported keys and decrypted captures | COMPLETE |
 | M02 Agent dispatch (sandboxed agents, fallback, prompt rendering) | COMPLETE |
+| M10 Portability (loopback on macOS and Linux), `wire summarize`, deliberately broken example | COMPLETE |
 | M03–M07 | DRAFT |
 
 Each COMPLETE milestone was built by one model family and verified by another, with
@@ -59,6 +63,7 @@ Requirements: macOS or Linux, Python 3.11+ with PyYAML, `tcpdump` with capture p
 experiments that use it.
 
 ```sh
+./demo.sh                      # one command: run, verify, explain (macOS and Linux)
 python3 -m wire validate-checkers wire/example/udp_echo/interop.yaml
 python3 -m wire run wire/example/udp_echo/interop.yaml --cell echo --out /tmp/echo
 python3 -m wire verify-bundle /tmp/echo/echo

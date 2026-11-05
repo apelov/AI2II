@@ -19,6 +19,24 @@ records the template version it used.
 7. Stop after the assigned task. Your session is disposable; the repository is the
    only memory.
 
+## Repository conventions (learned in M01-M09)
+
+- Tests are run by the orchestrator with `src/_shims` first on `PYTHONPATH`, so `python3 -m pytest` is the
+  stdlib shim in `src/_shims/pytest.py`: no fixtures, no conftest, the test directory is not on `sys.path`
+  (load helpers with `importlib` by path). Tests must pass under the shim and under real pytest. Reproduce with
+  `PYTHONPATH=src/_shims python3 -m pytest -q -p no:cacheprovider <paths>`.
+- Tests are hermetic: temporary directories and repositories only; `git status --porcelain` is empty after a run.
+- No `pytest.skip`, and no test that returns early when it cannot exercise its target: it must fail instead.
+- `ruff check` and `ruff format --check` pass on everything you change.
+- Packet capture: `tcpdump` on the loopback interface. `wire/` itself never parses pcaps; checkers may.
+- Builds in experiments force a clean build (stale intermediate objects make a hollow PASS).
+- Commit messages carry no `Co-Authored-By` trailer.
+- Run every command in the foreground and wait for it. Do not start background tasks, poll them, or use
+  `ps`/`kill`/`wait`: a headless session cannot be interrupted, and a stalled background job loses the run.
+- You may run inside a macOS Seatbelt sandbox: writes are limited to your worktree, the git metadata it needs,
+  a temporary directory, and your CLI's own state directories. Nested `sandbox-exec` fails there; that is
+  expected, and the orchestrator re-runs tests outside any sandbox.
+
 ## Role: architect (v1)
 
 ```text

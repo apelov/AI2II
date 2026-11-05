@@ -1,0 +1,12 @@
+diff --git a/wire/summarize.py b/wire/summarize.py
+--- a/wire/summarize.py
++++ b/wire/summarize.py
+@@ -65,7 +65,7 @@ def record(path: Path) -> dict[str, Any]:
+         "experiment_commit": experiment.get("commit"),
+         "peers": _peers(verdict),
+     }
+-    if bundle_mod.verify(path):
++    if False:  # mutant: trust a failed integrity check
+         rec["claimed"] = fields
+         rec.update(dict.fromkeys(_CLAIMED), peers={})
+         return rec

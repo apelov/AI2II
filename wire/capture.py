@@ -1,5 +1,6 @@
 """tcpdump capture control. wire never decodes packets; it only counts what tcpdump reports."""
 
+import platform
 import re
 import shutil
 import signal
@@ -16,6 +17,27 @@ FLUSH_DELAY_S = 0.5
 
 class CaptureError(Exception):
     """The capture could not be started."""
+
+
+LOOPBACK = {
+    "Darwin": "lo0",
+    "Linux": "lo",
+    "FreeBSD": "lo0",
+    "OpenBSD": "lo0",
+    "NetBSD": "lo0",
+}
+
+
+def resolve_interface(name: str) -> str:
+    """Map the word 'loopback' to this host's loopback interface; any other name is used as written."""
+    if name != "loopback":
+        return name
+    system = platform.system()
+    if system not in LOOPBACK:
+        raise CaptureError(
+            f"cannot resolve capture interface 'loopback' on OS {system!r}"
+        )
+    return LOOPBACK[system]
 
 
 def tcpdump() -> str:

@@ -1,0 +1,22 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M10/test_m10.py::test_ac2_linux_container_pass_and_hardcoded_lo0_blocked
+# commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a + mutant:ac1_ac2_loopback_passthrough
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________ test_ac2_linux_container_pass_and_hardcoded_lo0_blocked ____________
+
+    def test_ac2_linux_container_pass_and_hardcoded_lo0_blocked():
+        assert shutil.which("docker"), "AC2 requires Docker"
+>       assert (
+            command("docker", "image", "inspect", "debian-wire-test:latest").returncode == 0
+        ), "Debian wire image missing"
+E       AssertionError: Debian wire image missing
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=('docker', 'image', 'inspect', 'debian-wire-test:latest'), returncode=1, stdout='[]\n', stderr='...t and if the daemon is running: dial unix ~/.docker/run/docker.sock: connect: no such file or directory\n').returncode
+E        +    where CompletedProcess(args=('docker', 'image', 'inspect', 'debian-wire-test:latest'), returncode=1, stdout='[]\n', stderr='...t and if the daemon is running: dial unix ~/.docker/run/docker.sock: connect: no such file or directory\n') = command('docker', 'image', 'inspect', 'debian-wire-test:latest')
+
+acceptance/M10/test_m10.py:107: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M10/test_m10.py::test_ac2_linux_container_pass_and_hardcoded_lo0_blocked
+1 failed in 0.17s
+
+# exit: 1

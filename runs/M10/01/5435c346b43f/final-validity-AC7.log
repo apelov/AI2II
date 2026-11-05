@@ -1,0 +1,98 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M10/test_m10.py::test_ac7_prior_acceptance_suites_and_change_control
+# commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a + mutant:ac7_capture_unavailable
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_ac7_prior_acceptance_suites_and_change_control ______________
+
+    def test_ac7_prior_acceptance_suites_and_change_control():
+        m08 = (ROOT / "acceptance/M08/test_m08.py").read_text()
+        assert 'text.replace("interface: loopback", f"interface: {IFACE}")' in m08
+        for path in ("acceptance/M08/test_m08.py", "acceptance/M09/test_m09.py"):
+            r = command(
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                "-p",
+                "no:cacheprovider",
+                path,
+                env={**ENV, "PYTHONPATH": str(ROOT / "src/_shims")},
+            )
+>           assert r.returncode == 0, r.stdout + r.stderr
+E           AssertionError: F.F.FF.FF.F
+E             === FAIL: acceptance/M08/test_m08.py::test_ac10_vector_checking_and_bundle_inputs ===
+E             Traceback (most recent call last):
+E               File "<tmp>", line 153, in main
+E                 fn()
+E               File "<tmp>", line 858, in test_ac10_vector_checking_and_bundle_inputs
+E                 assert r.returncode == 0
+E                        ^^^^^^^^^^^^^^^^^
+E             AssertionError
+E             
+E             === FAIL: acceptance/M08/test_m08.py::test_ac1_example_pass_and_bundle_contents ===
+E             Traceback (most recent call last):
+E               File "<tmp>", line 153, in main
+E                 fn()
+E               File "<tmp>", line 166, in test_ac1_example_pass_and_bundle_contents
+E                 assert r.returncode == 0, f"wire run failed: {r.stdout}\n{r.stderr}"
+E                        ^^^^^^^^^^^^^^^^^
+E             AssertionError: wire run failed: BLOCKED: echo: mutant: capture unavailable
+E             bundle: <tmp>
+E             
+E             
+E             
+E             === FAIL: acceptance/M08/test_m08.py::test_ac3_verify_bundle_tamper_detection ===
+E             Traceback (most recent call last):
+E               File "<tmp>", line 153, in main
+E                 fn()
+E               File "<tmp>", line 295, in test_ac3_verify_bundle_tamper_detection
+E                 wire("run", str(manifest), "--cell", "echo", "--out", str(out)).returncode
+E             AssertionError
+E             
+E             === FAIL: acceptance/M08/test_m08.py::test_ac4_peer_failure_timeout_sigint_and_cleanup ===
+E             Traceback (most recent call last):
+E               File "<tmp>", line 153, in main
+E                 fn()
+E               File "<tmp>", line 374, in test_ac4_peer_failure_timeout_sigint_and_cleanup
+E                 assert r_mute.returncode == 1
+E                        ^^^^^^^^^^^^^^^^^^^^^^
+E             AssertionError
+E             
+E             === FAIL: acceptance/M08/test_m08.py::test_ac6_build_failure_missing_binary_capture_failure_blocked ===
+E             Traceback (most recent call last):
+E               File "<tmp>", line 153, in main
+E                 fn()
+E               File "<tmp>", line 569, in test_ac6_build_failure_missing_binary_capture_failure_blocked
+E                 assert "no packets" in v_zero["reason"]
+E                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             AssertionError
+E             
+E             === FAIL: acceptance/M08/test_m08.py::test_ac7_checkers_failing_or_accepting_negatives_yield_fail ===
+E             Traceback (most recent call last):
+E               File "<tmp>", line 153, in main
+E                 fn()
+E               File "<tmp>", line 590, in test_ac7_checkers_failing_or_accepting_negatives_yield_fail
+E                 assert r_fail.returncode == 1
+E                        ^^^^^^^^^^^^^^^^^^^^^^
+E             AssertionError
+E             
+E             === FAIL: acceptance/M08/test_m08.py::test_ac9_env_json_records_integrity_and_dirty_blocked ===
+E             Traceback (most recent call last):
+E               File "<tmp>", line 153, in main
+E                 fn()
+E               File "<tmp>", line 792, in test_ac9_env_json_records_integrity_and_dirty_blocked
+E                 assert r.returncode == 0
+E                        ^^^^^^^^^^^^^^^^^
+E             AssertionError
+E             
+E             7 failed, 4 passed
+E             
+E           assert 1 == 0
+E            +  where 1 = CompletedProcess(args=('/opt/anaconda3/bin/python3', '-m', 'pytest', '-q', '-p', 'no:cacheprovider', 'acceptance/M08/t...locked\n    assert r.returncode == 0\n           ^^^^^^^^^^^^^^^^^\nAssertionError\n\n7 failed, 4 passed\n', stderr='').returncode
+
+acceptance/M10/test_m10.py:403: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M10/test_m10.py::test_ac7_prior_acceptance_suites_and_change_control
+1 failed in 5.90s
+
+# exit: 1

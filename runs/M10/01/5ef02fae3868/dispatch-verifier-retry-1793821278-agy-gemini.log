@@ -1,0 +1,7 @@
+# command: agy --model gemini-3.8-flash-high --settings .ai2ii-state/agy-settings.json --print-timeout 0s -p "$(cat {prompt_file})" < /dev/null
+root agent idle; waiting up to 30m0s for 1 background task(s)
+I have launched `test_ac6_builder_tests_with_build_output` and will wait for it to finish.
+Waiting for task-183 to complete.
+
+# exit: 0
+# no committed milestones/M10/attempts/01/verification.yaml on m/M10/a01-verify

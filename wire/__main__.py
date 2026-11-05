@@ -1,10 +1,11 @@
-"""CLI: python3 -m wire {run,verify-bundle,validate-checkers}."""
+"""CLI: python3 -m wire {run,verify-bundle,validate-checkers,summarize}."""
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
-from . import bundle, checkers, run
+from . import bundle, checkers, run, summarize
 from .manifest import ManifestError, load
 
 
@@ -38,6 +39,20 @@ def _validate(args: argparse.Namespace) -> int:
     return 1 if bad else 0
 
 
+def _summarize(args: argparse.Namespace) -> int:
+    root = Path(args.dir)
+    records = summarize.summarize(root) if root.is_dir() else []
+    if not records:
+        print(f"wire: no bundles found under {root}", file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(records, indent=2))
+    else:
+        for rec in records:
+            print(summarize.row(rec))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="wire", description="Wire evidence bundles")
     sub = ap.add_subparsers(dest="command", required=True)
@@ -54,6 +69,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("manifest")
     p.set_defaults(fn=_validate)
+    p = sub.add_parser(
+        "summarize", help="one row per evidence bundle under a directory"
+    )
+    p.add_argument("dir")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=_summarize)
     args = ap.parse_args(argv)
     try:
         return int(args.fn(args))

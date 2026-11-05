@@ -1,0 +1,28 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M10/test_m10.py::test_ac4_corruption_causes_failure_and_checker_observes_pcap
+# commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a + mutant:ac4_skip_checker_after_peer_failure
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_ac4_corruption_causes_failure_and_checker_observes_pcap _________
+
+    def test_ac4_corruption_causes_failure_and_checker_observes_pcap():
+        assert "echo-broken" in (UDP / "interop.yaml").read_text()
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            manifest = example(tmp)
+            out = tmp / "out"
+            r = run(manifest, out, "echo-broken")
+            assert r.returncode == 1, r.stdout + r.stderr
+            v = verdict(out, "echo-broken")
+            assert v["verdict"] == "FAIL" and "echo-client" in v["reason"]
+            b = bundle(out, "echo-broken")
+            assert (b / "capture.pcap").stat().st_size > 24
+>           assert v["checkers"]["observes-echo"] != 0
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'observes-echo'
+
+acceptance/M10/test_m10.py:191: KeyError
+=========================== short test summary info ============================
+FAILED acceptance/M10/test_m10.py::test_ac4_corruption_causes_failure_and_checker_observes_pcap
+1 failed in 1.36s
+
+# exit: 1

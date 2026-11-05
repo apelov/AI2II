@@ -1,0 +1,6 @@
+# command: claude -p --model sonnet --permission-mode bypassPermissions < {prompt_file}
+API Error: 502 Upstream service error. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com.
+
+API Error: 502 Upstream service error. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com.
+
+# exit: 1

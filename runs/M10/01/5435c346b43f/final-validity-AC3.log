@@ -1,0 +1,36 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M10/test_m10.py::test_ac3_unknown_os_blocks_before_peer_start
+# commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a + mutant:ac3_unknown_os_unblocked
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________ test_ac3_unknown_os_blocks_before_peer_start _________________
+
+    def test_ac3_unknown_os_blocks_before_peer_start():
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            manifest = example(tmp)
+            code = "import platform,sys; platform.system=lambda:'Plan9'; from wire.__main__ import main; sys.exit(main(sys.argv[1:]))"
+            out = tmp / "out"
+            r = command(
+                sys.executable,
+                "-c",
+                code,
+                "run",
+                str(manifest),
+                "--cell",
+                "echo",
+                "--out",
+                str(out),
+            )
+>           assert r.returncode == 3, r.stdout + r.stderr
+E           AssertionError: PASS: echo: all peers exited 0, capture non-empty, every checker passed and rejected its negatives
+E             bundle: <tmp>
+E             
+E           assert 0 == 3
+E            +  where 0 = CompletedProcess(args=('/opt/anaconda3/bin/python3', '-c', "import platform,sys; platform.system=lambda:'Plan9'; from ...ted its negatives\nbundle: <tmp>', stderr='').returncode
+
+acceptance/M10/test_m10.py:170: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M10/test_m10.py::test_ac3_unknown_os_blocks_before_peer_start
+1 failed in 1.52s
+
+# exit: 1

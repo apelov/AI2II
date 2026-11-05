@@ -11,6 +11,14 @@ peers:
     binaries: [bin/udp_echo_server.py]
     start: python3 bin/udp_echo_server.py --port 47321
     ready: {command: "python3 ready.py {bundle}/echo-server.log", timeout_s: 10}
+  - name: echo-server-broken
+    path: .
+    family: example-server
+    under_test: true
+    build: python3 build.py
+    binaries: [bin/udp_echo_server.py]
+    start: python3 bin/udp_echo_server.py --port 47321 --corrupt
+    ready: {command: "python3 ready.py {bundle}/echo-server-broken.log", timeout_s: 10}
   - name: echo-client
     path: .
     family: example-client
@@ -18,10 +26,15 @@ peers:
     build: python3 build.py
     binaries: [bin/udp_echo_client.py]
     start: python3 bin/udp_echo_client.py --port 47321 --payload-file vectors/payload.bin
-capture: {interface: lo0, filter: udp port 47321}
+capture: {interface: loopback, filter: udp port 47321}
 cells:
   - name: echo
     server: echo-server
+    clients: [echo-client]
+    checkers: [observes-echo, vector]
+    timeout_s: 20
+  - name: echo-broken
+    server: echo-server-broken
     clients: [echo-client]
     checkers: [observes-echo, vector]
     timeout_s: 20

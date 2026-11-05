@@ -1,0 +1,93 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M10/test_m10.py::test_ac5_summary_integrity_missing_and_empty
+# commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a + mutant:ac5_trust_tampered_bundle
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________ test_ac5_summary_integrity_missing_and_empty _________________
+
+    def test_ac5_summary_integrity_missing_and_empty():
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            assert wire("summarize", tmp).returncode == 2
+            manifest = example(tmp)
+            root = tmp / "many"
+            assert run(manifest, root / "a").returncode == 0
+            assert run(manifest, root / "b/deep", "echo-broken").returncode == 1
+            env_manifest = manifest.read_text().replace(
+                'python3 -c "import sys"', 'python3 -c "import sys; sys.exit(1)"'
+            )
+            manifest.write_text(env_manifest)
+            assert (
+                command("git", "add", "interop.yaml", cwd=manifest.parent).returncode == 0
+            )
+            assert (
+                command(
+                    "git",
+                    "-c",
+                    "user.email=v@example.invalid",
+                    "-c",
+                    "user.name=v",
+                    "commit",
+                    "-qm",
+                    "env",
+                    cwd=manifest.parent,
+                ).returncode
+                == 0
+            )
+            assert run(manifest, root / "c").returncode == 4
+            text = manifest.read_text().replace(
+                'python3 -c "import sys; sys.exit(1)"', 'python3 -c "import sys"'
+            )
+            text = text.replace("interface: loopback", "interface: m10-no-such-interface")
+            manifest.write_text(text)
+            assert (
+                command("git", "add", "interop.yaml", cwd=manifest.parent).returncode == 0
+            )
+            assert (
+                command(
+                    "git",
+                    "-c",
+                    "user.email=v@example.invalid",
+                    "-c",
+                    "user.name=v",
+                    "commit",
+                    "-qm",
+                    "blocked",
+                    cwd=manifest.parent,
+                ).returncode
+                == 0
+            )
+            assert run(manifest, root / "d").returncode == 3
+            missing = root / "missing"
+            missing.mkdir()
+            (missing / "SHA256SUMS").write_text("")
+            malformed = root / "malformed"
+            malformed.mkdir()
+            (malformed / "verdict.json").write_text("{")
+            records = json.loads(wire("summarize", root, "--json").stdout)
+            vals = {Path(x["bundle"]).parent.name: x for x in records if x["verdict"]}
+            assert {x["verdict"] for x in vals.values()} == {
+                "PASS",
+                "FAIL",
+                "ENV",
+                "BLOCKED",
+            }
+            assert all(
+                x["verified"] and "peers" in x and "experiment_commit" in x
+                for x in vals.values()
+            )
+            assert sum(x["verdict"] is None and bool(x.get("error")) for x in records) == 2
+            pass_verdict = root / "a/echo/verdict.json"
+            obj = json.loads(pass_verdict.read_text())
+            obj["verdict"] = "FAIL"
+            pass_verdict.write_text(json.dumps(obj))
+            recs = json.loads(wire("summarize", root, "--json").stdout)
+            edited = next(x for x in recs if x["bundle"] == str(root / "a/echo"))
+>           assert edited["verified"] is False and edited["claimed"]["verdict"] == "FAIL"
+E           assert (True is False)
+
+acceptance/M10/test_m10.py:313: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M10/test_m10.py::test_ac5_summary_integrity_missing_and_empty
+1 failed in 3.63s
+
+# exit: 1

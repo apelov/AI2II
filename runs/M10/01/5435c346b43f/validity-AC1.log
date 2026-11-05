@@ -1,0 +1,26 @@
+# command: /opt/anaconda3/bin/python3 -m pytest -q -p no:cacheprovider acceptance/M10/test_m10.py::test_ac1_macos_loopback_capture_and_pass
+# commit: 3e16f01a69138e65fa9251d94a988c748c1dce9a + mutant:ac1_ac2_loopback_passthrough
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________________ test_ac1_macos_loopback_capture_and_pass ___________________
+
+    def test_ac1_macos_loopback_capture_and_pass():
+        assert sys.platform == "darwin", "AC1 requires macOS"
+        assert "interface: loopback" in (UDP / "interop.yaml").read_text()
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            out = tmp / "out"
+            r = run(example(tmp), out)
+>           assert r.returncode == 0, r.stdout + r.stderr
+E           AssertionError: BLOCKED: echo: capture did not start: (No such device exists)
+E             bundle: <tmp>
+E             
+E           assert 3 == 0
+E            +  where 3 = CompletedProcess(args=('/opt/anaconda3/bin/python3', '-m', 'wire', 'run', '/var/folders/31/7x197zc125z0cvx2x2kqftxm000...ch device exists)\nbundle: <tmp>', stderr='').returncode
+
+acceptance/M10/test_m10.py:97: AssertionError
+=========================== short test summary info ============================
+FAILED acceptance/M10/test_m10.py::test_ac1_macos_loopback_capture_and_pass
+1 failed in 0.50s
+
+# exit: 1

@@ -22,7 +22,7 @@ peers:
     env: {SSLKEYLOGFILE: "{secrets}/client.keys"}
     secrets: [client.keys]
     start: python3 src/tls_client.py --port 47443 --payload-file vectors/payload.bin
-capture: {interface: lo0, filter: tcp port 47443}
+capture: {interface: loopback, filter: tcp port 47443}
 decrypt:
   command: editcap -F pcapng --inject-secrets tls,{secrets}/client.keys {capture} {decrypted}
 cells:

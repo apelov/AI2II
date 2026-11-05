@@ -1,0 +1,58 @@
+id: M10
+title: wire portability (loopback on macOS and Linux), results summary, and a deliberately broken example
+objective: >
+  Make the first wire run (the UDP-echo example, ./demo.sh) succeed unchanged on a clean macOS or Linux host with the
+  documented prerequisites, let organisers compare many bundles at once, and show in the shipped example that a faulty
+  implementation yields FAIL with a checker log that explains it (DESIGN.md 24.20, "Portability and summaries").
+depends_on: [M09]
+inputs: [DESIGN.md 24.20, DESIGN.md 24.21, reviews/design-06.md, reviews/milestones-11.md]
+deliverables:
+  - "capture.interface: loopback, resolved per OS and recorded in env.json"
+  - "checkers run on a non-empty capture after a peer failure (verdict stays FAIL)"
+  - "python3 -m wire summarize <dir> [--json]"
+  - "udp_echo example: interface loopback, and a cell echo-broken whose server corrupts the echo"
+  - "tls_echo example: interface loopback"
+  - "tests that copy examples copy only git-tracked files"
+change_control: >
+  Before the build starts, the orchestrator operator applies one approved compatibility edit to
+  acceptance/M08/test_m08.py: its manifest fixture maps "interface: loopback" to the platform interface, as it
+  already maps lo0 (approved with G2-M10). No other acceptance file of a COMPLETE milestone changes.
+interface:
+  summarize_record: "{bundle, verified: bool, verdict, reason, experiment, cell, experiment_commit, peers: {name: {commit, dirty}}, claimed (when not verified), error (when verdict.json is missing or malformed)}"
+  exit_codes: "summarize: 0 when at least one bundle was found, 2 when none or on a usage error"
+acceptance:
+  AC1: >
+    On macOS, a manifest with capture.interface: loopback captures on lo0, and env.json records the resolved interface
+    "lo0"; the udp_echo example's echo cell yields PASS.
+  AC2: >
+    In a Linux container (Debian with python3, PyYAML, git and tcpdump, run as root), with the example copied into a
+    fresh, committed git repository, the unmodified udp_echo example's echo cell yields PASS with env.json recording
+    "lo", and verify-bundle prints OK. In the same setup, a copy whose committed manifest hardcodes interface lo0 yields
+    BLOCKED with a reason naming the capture or interface (not the experiment directory).
+  AC3: >
+    If the loopback interface cannot be resolved (simulated by an OS name with no mapping), the verdict is BLOCKED
+    (exit 3) with a reason naming the interface, and no peer is started.
+  AC4: >
+    The udp_echo example has a cell echo-broken whose server returns the payload with exactly one byte changed. Its
+    run yields FAIL (exit 1) with the failing client named in the reason; the corrupted echo is present in
+    capture.pcap; and checker-<observes_capture checker>.log exists and shows the checker rejecting the exchange
+    (non-zero exit). A server that returns the echo unchanged in the same cell layout yields PASS, so the FAIL is
+    caused by the corruption.
+  AC5: >
+    wire summarize over a directory holding a PASS, a FAIL, a BLOCKED and an ENV bundle (nested at different depths)
+    prints four rows with the right verdicts, and --json gives four records with the interface fields and
+    verified true. A PASS bundle whose verdict.json was edited after the run is shown as UNVERIFIED(...) in text and
+    has verified false with the claimed fields under claimed in JSON. A bundle with no or malformed verdict.json has
+    verdict null and an error field. An empty directory exits 2. summarize starts no subprocess.
+  AC6: >
+    After running the udp_echo and tls_echo examples in the repository (leaving build output such as bin/ in the
+    example directories), the builder tests all pass: tests that copy an example copy only its git-tracked files.
+    (This does not test the clean-build rule for compiled experiments, which stays author guidance.)
+  AC7: >
+    The M08 acceptance suite passes with only the change_control edit above, and the M09 acceptance suite passes
+    unchanged.
+out_of_scope:
+  - multi-host cells
+  - detecting stale intermediate build products (documented rule for experiment authors)
+  - Windows
+size_hint: S

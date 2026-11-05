@@ -108,6 +108,12 @@ class _Cell:
             if rc != 0:
                 return "ENV", f"env check failed: {chk['name']}"
 
+        try:
+            interface = capture.resolve_interface(m.capture["interface"])
+        except capture.CaptureError as e:
+            return "BLOCKED", str(e)
+        self.env["capture_interface"] = interface
+
         commit, dirty = git_state(m.root)
         self.env["experiment"] = {"path": str(m.root), "commit": commit, "dirty": dirty}
         if commit is None or dirty is None:
@@ -163,7 +169,7 @@ class _Cell:
 
         try:
             cap = capture.start(
-                m.capture["interface"],
+                interface,
                 m.capture["filter"],
                 self.pcap,
                 self.bundle / "capture.log",
@@ -177,6 +183,10 @@ class _Cell:
         packets = capture.stop(cap, self.bundle / "capture.log")
         self.env["capture_packets"] = packets
         if failure:
+            if (
+                packets
+            ):  # keep the checkers' view of the wire next to the peer's failure
+                self.run_checkers()
             return "FAIL", failure
         if not packets:
             return "BLOCKED", "capture recorded no packets"

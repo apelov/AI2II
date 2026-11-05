@@ -63,6 +63,8 @@ def make_exp(
     text = (exp / "interop.yaml").read_text(encoding="utf-8")
     text = text.replace("47321", str(port))
     text = text.replace("lo0", IFACE)
+    # M10 change_control (approvals/G2-M10.md): the example now says "loopback".
+    text = text.replace("interface: loopback", f"interface: {IFACE}")
     for old, new in edits:
         assert old in text, f"edit target {old!r} not in manifest"
         text = text.replace(old, new)

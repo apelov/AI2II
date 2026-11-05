@@ -1,0 +1,56 @@
+milestone: M10
+attempt: 1
+role: builder
+agent: claude-sonnet
+family: anthropic
+model: claude-sonnet-5-5
+prompt_version: 1
+result: success
+commit: 5435c346b43feaea4df070e4a2e46cb5f92c3bfe
+duration_seconds: 598.913
+timestamp: '2026-11-04T19:06:43.181269Z'
+candidates:
+- milestone: M10
+  attempt: 1
+  role: builder
+  agent: claude-sonnet
+  family: anthropic
+  model: claude-sonnet-5-5
+  prompt_version: 1
+  result: no-record
+  commit: 5ef02fae38681e3fc17d86cbb66bf288a31cdcc6
+  duration_seconds: 23.632
+  timestamp: '2026-11-04T15:55:32.817983Z'
+- milestone: M10
+  attempt: 1
+  role: builder
+  agent: claude-sonnet
+  family: anthropic
+  model: claude-sonnet-5-5
+  prompt_version: 1
+  result: no-record
+  commit: 5ef02fae38681e3fc17d86cbb66bf288a31cdcc6
+  duration_seconds: 34.49
+  timestamp: '2026-11-04T15:57:05.200705Z'
+- milestone: M10
+  attempt: 1
+  role: builder
+  agent: claude-sonnet
+  family: anthropic
+  model: claude-sonnet-5-5
+  prompt_version: 1
+  result: failure
+  commit: 5ef02fae38681e3fc17d86cbb66bf288a31cdcc6
+  duration_seconds: 640.245
+  timestamp: '2026-11-04T18:46:52.906301Z'
+- milestone: M10
+  attempt: 1
+  role: builder
+  agent: claude-sonnet
+  family: anthropic
+  model: claude-sonnet-5-5
+  prompt_version: 1
+  result: success
+  commit: 5435c346b43feaea4df070e4a2e46cb5f92c3bfe
+  duration_seconds: 598.913
+  timestamp: '2026-11-04T19:06:43.181269Z'

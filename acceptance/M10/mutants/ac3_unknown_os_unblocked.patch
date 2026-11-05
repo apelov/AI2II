@@ -1,0 +1,11 @@
+diff --git a/wire/capture.py b/wire/capture.py
+--- a/wire/capture.py
++++ b/wire/capture.py
+@@ -35,6 +35,7 @@ def resolve_interface(name: str) -> str:
+         return name
+     system = platform.system()
+     if system not in LOOPBACK:
++        return "lo0"
+         raise CaptureError(
+             f"cannot resolve capture interface 'loopback' on OS {system!r}"
+         )

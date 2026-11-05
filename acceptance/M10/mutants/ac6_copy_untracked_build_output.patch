@@ -1,0 +1,20 @@
+diff --git a/tests/test_wire.py b/tests/test_wire.py
+--- a/tests/test_wire.py
++++ b/tests/test_wire.py
+@@ -40,4 +40,6 @@ def copy_tracked(src: Path, dst: Path) -> None:
+     """Copy only the git-tracked files of an example (build output such as bin/ stays behind)."""
++    shutil.copytree(src, dst)  # mutant: includes untracked build output
++    return
+     names = subprocess.run(
+         ["git", "ls-files", "-z", "."],
+         cwd=src,
+diff --git a/tests/test_wire_secured.py b/tests/test_wire_secured.py
+--- a/tests/test_wire_secured.py
++++ b/tests/test_wire_secured.py
+@@ -47,4 +47,6 @@ def copy_tracked(src: Path, dst: Path) -> None:
+     """Copy only the git-tracked files of an example (build output such as bin/ stays behind)."""
++    shutil.copytree(src, dst)  # mutant: includes untracked build output
++    return
+     names = subprocess.run(
+         ["git", "ls-files", "-z", "."],
+         cwd=src,
