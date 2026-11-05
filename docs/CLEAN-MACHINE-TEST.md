@@ -37,7 +37,8 @@ Open the `capture.pcap` printed by the demo in Wireshark (or `tshark -r <file>`)
 
 ```sh
 ./scripts/verify_gate.sh                     # expected: GATE PASSED
-python3 -m pytest -q tests acceptance        # if real pytest is installed; expected: all passed
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -p no:cacheprovider tests acceptance   # real pytest; expected: all passed
+# (without PYTHONDONTWRITEBYTECODE, leftover .pyc files under wire/ trip one M09 test; known, fix after IETF 127)
 ```
 
 ## 5. Secured protocol example (if Wireshark is installed)
