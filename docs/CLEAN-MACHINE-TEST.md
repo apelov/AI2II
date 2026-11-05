@@ -15,6 +15,9 @@ Record the time from step 1 to the first PASS.
 | PyYAML | `python3 -m pip install pyyaml` | `sudo apt install python3-yaml` |
 | git | Xcode command line tools | `sudo apt install git` |
 | tcpdump with capture permission | preinstalled; permission: install Wireshark and its ChmodBPF, or `sudo` | `sudo apt install tcpdump`; run as root, or `sudo setcap cap_net_raw,cap_net_admin=eip $(which tcpdump)` |
+| git identity (some tests commit) | `git config --global user.name "You"` and `user.email` | same |
+| ruff 0.16.0 (only for `verify_gate.sh`) | `python3 -m pip install ruff==0.16.0` | same (newer ruff adds rules the code does not follow yet) |
+| pytest (only for step 4) | `python3 -m pip install pytest` | same |
 | Wireshark (only for the TLS example and opening captures) | `brew install --cask wireshark` | `sudo apt install tshark` |
 
 ## 2. One-command demo
@@ -45,7 +48,8 @@ python3 -m pytest -q -p no:cacheprovider tests acceptance/M00 acceptance/M01 acc
 Not expected to pass everywhere (known, fix after IETF 127): `acceptance/M10` is the
 milestone's own platform evidence. Its AC1 test runs only on macOS, and its AC2 test needs
 Docker and a prebuilt image `debian-wire-test`. `./demo.sh` (step 2) is the cross-platform
-check for the same behaviour.
+check for the same behaviour. On Linux, `acceptance/M02/test_m02.py::test_ac8_seatbelt_profile_and_confinement`
+also fails: agent dispatch confines agents with macOS Seatbelt, so it is macOS-only.
 
 
 ## 5. Secured protocol example (if Wireshark is installed)
