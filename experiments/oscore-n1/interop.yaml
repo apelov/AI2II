@@ -32,6 +32,13 @@ peers:
     family: anthropic
     under_test: true
     start: python3 run_clients.py --clients 3 --notifs 3
+  # Python port of the server, written with Claude from the draft (Section 4), not from the C code.
+  - name: py-server
+    path: py-server
+    family: anthropic
+    under_test: true
+    start: python3 mn_server.py
+    ready: {command: "grep -q Listening {bundle}/py-server.log", timeout_s: 15}
 capture: {interface: lo0, filter: udp port 5683 or udp port 56830}
 cells:
   - name: N1
@@ -42,6 +49,11 @@ cells:
   - name: N1-py
     server: c-server
     clients: [py-clients]
+    checkers: [observes-n1]
+    timeout_s: 300
+  - name: N1-pyserver
+    server: py-server
+    clients: [c-clients]
     checkers: [observes-n1]
     timeout_s: 300
 checkers:
