@@ -49,6 +49,12 @@ The checker family (google) differs from both implementations under test (anthro
 `python3 -m wire verify-bundle runs/wire/oscore-n1/N1-py-20261115T002754Z/N1-py` prints `OK`.
 Host: macOS 27.2 (Apple Silicon), loopback `lo0`, tcpdump 4.99.1, Python 3.13.14.
 
+**What this PASS shows about the Python client.** In cell N1-py, `observes-n1` checks the client's
+wire behaviour only through its Observe registrations (check 2); checks 3–7 assert the C server's
+messages. That the Python client decoded `tp_info`, joined the group and accepted the notifications
+is evidenced by its own exit 0 and its log (`py-clients.log`: three clients, three
+`[NOTIFICATION]` lines each), not by the checker. The client exits 1 on any failed step.
+
 The original cell `N1` (C server, C clients) was also re-run on this host as a setup check: PASS.
 That bundle was not kept (it reproduces the existing `N1-20261103T200141Z`). Its binary hashes
 differ from those in `experiments/oscore-n1/README.md` (`coap_server` `34f2ec00…` vs `8c1732a8…`),
