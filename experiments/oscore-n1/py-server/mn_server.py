@@ -387,8 +387,27 @@ class Server:
             now = time.monotonic()
             self.retransmit(now)
             if self.group and now >= self.group["next_send"]:
-                self.send_notification()
+                if (
+                    self.args.cancel_after
+                    and self.group["observe"] >= self.args.cancel_after
+                ):
+                    self.cancel_group()
+                else:
+                    self.send_notification()
         log(f"Server stopped (observers={self.observers}, state={self.state}).")
+
+    # ---- 4.5: cancellation
+    def cancel_group(self):
+        """Multicast 5.03 with Token T, no payload, no Observe, to GRP_ADDR:GRP_PORT; then
+        release the group observation (a later registration starts a new one, new Token)."""
+        g = self.group
+        dgram = build(NON, C_5_03, self.next_mid(), g["token"])
+        self.sock.sendto(dgram, (self.args.group, self.args.group_port))
+        log(
+            f"[CANCEL] NON 5.03 token T={g['token'].hex()} (no payload, no Observe) "
+            f"-> {self.args.group}:{self.args.group_port}; group observation released"
+        )
+        self.group, self.observers = None, 0
 
 
 def main():
@@ -409,6 +428,12 @@ def main():
     )
     # Draft 15.2 leaves the Content-Format ID as TBD; 12 is the placeholder the C peers use.
     ap.add_argument("--content-format", type=int, default=12)
+    ap.add_argument(
+        "--cancel-after",
+        type=int,
+        default=0,
+        help="cancel the group observation (Section 4.5) after this many notifications; 0 = never",
+    )
     Server(ap.parse_args()).run()
     return 0
 

@@ -232,6 +232,11 @@ def main():
     ap.add_argument("--resource", default="mult")
     ap.add_argument("--notifs", type=int, default=3)
     ap.add_argument("--timeout", type=float, default=60.0)
+    ap.add_argument(
+        "--expect-cancel",
+        action="store_true",
+        help="after --notifs notifications, also require a cancellation (Section 4.5) to exit 0",
+    )
     args = ap.parse_args()
 
     deadline = time.monotonic() + args.timeout
@@ -360,10 +365,13 @@ def main():
     log(f"[JOIN] {grp_ip}:{grp_port} on interface {iface}")
 
     seen = 0
-    while seen < args.notifs:
+    while True:
+        if seen >= args.notifs and not args.expect_cancel:
+            break
         left = deadline - time.monotonic()
         if left <= 0:
-            fail(f"timeout: {seen}/{args.notifs} notifications")
+            what = "cancellation" if seen >= args.notifs else "notifications"
+            fail(f"timeout waiting for {what}: {seen}/{args.notifs} notifications")
         mc.settimeout(left)
         try:
             raw, src = mc.recvfrom(2048)
@@ -379,6 +387,17 @@ def main():
                 f"[WARN] ignoring datagram from {src[0]}:{src[1]} token={m.token.hex()}"
             )
             continue
+        if m.code == CODE_5_03 and not m.opt(OPT_OBSERVE) and not m.payload:
+            # 4.5 / 5.4: the server cancelled the group observation; forget it.
+            log(
+                f"[CANCELLED] 5.03 for token T={tok_t.hex()} after {seen} notifications (draft 4.5, 5.4)"
+            )
+            if args.expect_cancel and seen >= args.notifs:
+                log(f"[DONE] {seen}/{args.notifs} notifications, then cancellation")
+                return 0
+            fail(
+                f"group observation cancelled after {seen}/{args.notifs} notifications"
+            )
         if m.code >> 5 != 2:
             fail(f"group observation ended with {m.code_str()} (draft 4.5)")
         obs = m.opt(OPT_OBSERVE)

@@ -90,6 +90,70 @@ Points of interoperability that the runs did exercise:
 - The C client and the checker took the group token from `tp_info` rather than assuming the C
   server's fixed value: the Python server's random token was accepted by both.
 
+## Exploratory adversarial tests (no bundle)
+
+After the two PASS cells, error paths were probed with deliberately misbehaving peers
+(`adversarial/`, see its README). These are **exploratory runs, not wire cells**: no bundle and no
+independent checker, because every peer involved is from family anthropic. Host and C commit as
+above (C peers at `9b7d288`). To turn any of these into evidence, a checker from another family
+is needed.
+
+**1. Lost ACK for the 5.03 (RFC 7252 4.2).** `no_ack_client.py` never ACKs the informative response.
+
+| Server | Retransmissions (same Message ID) | Gaps (s) | Verdict |
+|---|---|---|---|
+| C | 4 | 2.3, 4.6, 9.1, 18.3 | correct |
+| Python | 4 | 2.5, 5.1, 10.1, 20.2 | correct |
+
+**2. Malformed informative responses and stray cancellations.** `bad_server.py` answers with one
+broken field, then sends three notifications (token `11223344`, from `127.0.0.1:5683` to
+`224.0.1.187:56830`). Column = notifications the client accepted (correct: 3 for `good`, 0 otherwise).
+
+| Variant | What is wrong | C client | Python client |
+|---|---|---|---|
+| `good` | nothing (control) | 3 | 3 |
+| `no-tp-info` | `tp_info` absent | 0, keeps running | 0, exit 1 |
+| `not-cbor` | payload not CBOR | 0, keeps running | 0, exit 1 |
+| `truncated` | CBOR cut in half | 0, keeps running | 0, exit 1 |
+| `tp-info-short` | no `tpi_token` | 0, keeps running | 0, exit 1 |
+| `long-token` | 9-byte `tpi_token` | 0, keeps running | 0, exit 1 |
+| `token-not-bstr` | `tpi_token` is an integer | 0, keeps running | 0, exit 1 |
+| `token-mismatch` | notifications carry another token | 0 | 0 |
+| `unicast-group` | `tpi_client` is 127.0.0.1 | 0, join fails, **exit 0** | 0, exit 1 |
+| `empty-token` | `tpi_token` is `h''` | **3** | 0, exit 1 |
+| `source-mismatch` | `tpi_server` is :5699, notifications from :5683 | **3** | 0 |
+| `bad-scheme` | scheme-id -2 (coaps) | **3** | 0, exit 1 |
+| `ph-req-mismatch` | `ph_req` is for `/other` | **3** | 0, exit 1 |
+| `stray-cancel` | after notification 1, a 5.03 with **another** token to the group | **1, then shuts down** | 3 |
+
+**3. Cancellation (Section 4.5).** Added to the Python server (`--cancel-after N`: multicast NON
+5.03, Token T, no payload, no Observe) and to the Python client (`--expect-cancel`). Python server →
+Python client: 3 notifications, then cancellation, exit 0. Python server → C client: 3
+notifications, then "Received group observation cancellation", exit 0. Without a cancellation,
+`--expect-cancel` times out with exit 1.
+
+**Issues found in the C client** (`coap-multicast-notifications` @ `9b7d288`, `src/client.c`).
+These belong to that repository; none affects the PASS cells above.
+
+1. **Cancellation is not bound to Token T** (lines 94–98: any 5.03 without payload is taken as
+   cancellation). A stray or forged multicast 5.03 with another token shuts the client down.
+   Draft 4.5: the cancellation "has the same Token value T"; 5.4.
+2. **Notifications are not filtered by source** (`tpi_server`). Notifications from a different
+   port than the one in `tpi_server` are accepted. Draft 4.3 ("MUST be sent from the same IP
+   address SRV_ADDR and port number SRV_PORT"), 5.2 step 1.
+3. **An empty `tpi_token` accepts every token** (lines 113–121: a zero-length group token is treated
+   as "not configured" and matches any notification). Draft 5.3: notifications "with Token value T".
+4. **`scheme-id` is not checked**: `coaps` (-2) is accepted for plain UDP multicast (only its default
+   port, 5684, is applied). Draft 5.2: the client identifies the transport from the scheme.
+5. **`ph_req` is not compared** with the client's own request (5.2 step 3, SHOULD).
+6. **After a malformed informative response the client neither re-registers nor withdraws**; it
+   keeps running silently (5.2, MAY / SHOULD).
+7. **A failed multicast join exits with status 0** (lines 286–304), so a driver that only checks the
+   exit status would count it as success. (`clients_seq.py` counts notifications, so N1 is not affected.)
+
+The Python client handles all variants as expected, with one debatable choice: it rejects an empty
+`tpi_token`, which CoAP itself allows (see feedback item 3).
+
 ## Feedback on the draft
 
 1. **Content-Format of the informative response is `TBD` (Section 15.2).** This is the normal state
@@ -98,6 +162,20 @@ Points of interoperability that the runs did exercise:
    `12` (configurable) and the Python client logs the value without enforcing one. Suggestion: state a
    suggested value for experimentation (e.g. "TBD (suggested: 12)"), or consider early allocation, so
    that independent implementations agree during interop testing.
+2. **"SHOULD explicitly withdraw" is not defined.** Sections 5.2 (twice), 9.1 and 9.3.1 say the
+   client "SHOULD explicitly withdraw from the group observation", but no section says how (a GET with
+   Observe 1? a Reset to a notification?). Section 5.4 then says that a client that is no longer
+   interested "can simply 'forget'", which is not explicit. Neither implementation tested here
+   withdraws explicitly, because there is no defined way to do it.
+3. **May `tpi_token` be empty?** The CDDL is `tpi_token: bstr`, and CoAP allows a zero-length
+   Token, so an empty T seems valid; but an empty T makes notifications indistinguishable from any
+   other zero-length-token traffic at the client endpoint, and implementations differ (the C client
+   then accepts every token, the Python client rejects it). A sentence on whether T may be empty, or
+   should be non-empty, would remove the ambiguity.
+4. **Observer counter when the informative response is never acknowledged.** Section 4.2 increments
+   the counter on each registration. If the CON 5.03 is never ACKed, both servers give up after 4
+   retransmissions but keep the client counted. RFC 7641 Section 4.5 removes an observer whose
+   Confirmable notification is not acknowledged; the draft could say whether the same applies here.
 
 ## Observations on the AI-assisted workflow
 
@@ -116,11 +194,15 @@ Points of interoperability that the runs did exercise:
 
 - **Group OSCORE** (secured profile, Section 9): only the nosec profile was tested.
 - **Python server ↔ Python client** under capture: only checked by hand, no bundle.
-- **Error paths on the wire**: malformed or missing `tp_info`, `ph_req` that differs from the
-  registration, retransmission of the 5.03 when the ACK is lost, cancellation (Sections 4.5, 5.4),
-  multicast error responses. Both Python peers have code for some of these, but no cell exercises them.
-- **Not implemented in the Python server:** cancellation (4.5), the observer-counter estimation and
-  Feedback-Divider (Section 8), `ending`, IPv6, more than one resource.
+- **Error paths as wire evidence**: lost ACKs, malformed informative responses and cancellation
+  were probed only by the exploratory runs above, without bundles or an independent checker.
+- **Cancellation from the C server**: the C server does not send one; only the Python server's
+  cancellation was tested.
+- **Not implemented in the Python server:** the observer-counter estimation and Feedback-Divider
+  (Section 8), `ending`, IPv6, more than one resource.
+- **`observes-n1` does not check `tpi_server`**: the checker reads it but never compares it with the
+  notifications' source (ruff F841 at `checkers/observes_n1.py:439`), so source addressing (4.3) is
+  not asserted by any checker.
 - **`last_notif` as reordering baseline**: both servers send `last_notif`; the case where a stale
   notification arrives after the baseline was not produced.
 - **Host-name CRIs, CRIs with userinfo, non-default `tpi_server` port.**
