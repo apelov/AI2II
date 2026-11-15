@@ -1,0 +1,39 @@
+[driver] client1: start
+[client1] [REGISTER] GET coap://127.0.0.1:5683/mult Observe=0 token=437a5d61d8490223
+[client1] [RESPONSE] 5.03 type=0 token=437a5d61d8490223
+[client1] [INFO] informative response Content-Format=12 (draft 15.2: ID is TBD)
+[client1] [TP_INFO] server=127.0.0.1:5683 group=224.0.1.187:56830 token_T=11223344
+[client1] [INFO] ph_req matches our registration request
+[client1] [LAST_NOTIF] code=2.05 observe=0 payload=b'0'
+[client1] [JOIN] 224.0.1.187:56830 on interface 127.0.0.1
+[client1] [NOTIFICATION] observe=1 type=NON payload=1
+[client1] [NOTIFICATION] observe=2 type=NON payload=2
+[client1] [NOTIFICATION] observe=3 type=NON payload=3
+[client1] [DONE] 3/3 notifications
+[driver] client1: exit 0
+[driver] client2: start
+[client2] [REGISTER] GET coap://127.0.0.1:5683/mult Observe=0 token=a5b42e03d2289508
+[client2] [RESPONSE] 5.03 type=0 token=a5b42e03d2289508
+[client2] [INFO] informative response Content-Format=12 (draft 15.2: ID is TBD)
+[client2] [TP_INFO] server=127.0.0.1:5683 group=224.0.1.187:56830 token_T=11223344
+[client2] [INFO] ph_req matches our registration request
+[client2] [LAST_NOTIF] code=2.05 observe=3 payload=b'3'
+[client2] [JOIN] 224.0.1.187:56830 on interface 127.0.0.1
+[client2] [NOTIFICATION] observe=4 type=NON payload=4
+[client2] [NOTIFICATION] observe=5 type=NON payload=5
+[client2] [NOTIFICATION] observe=6 type=NON payload=6
+[client2] [DONE] 3/3 notifications
+[driver] client2: exit 0
+[driver] client3: start
+[client3] [REGISTER] GET coap://127.0.0.1:5683/mult Observe=0 token=1bc7d216b041b824
+[client3] [RESPONSE] 5.03 type=0 token=1bc7d216b041b824
+[client3] [INFO] informative response Content-Format=12 (draft 15.2: ID is TBD)
+[client3] [TP_INFO] server=127.0.0.1:5683 group=224.0.1.187:56830 token_T=11223344
+[client3] [INFO] ph_req matches our registration request
+[client3] [LAST_NOTIF] code=2.05 observe=6 payload=b'6'
+[client3] [JOIN] 224.0.1.187:56830 on interface 127.0.0.1
+[client3] [NOTIFICATION] observe=7 type=NON payload=7
+[client3] [NOTIFICATION] observe=8 type=NON payload=8
+[client3] [NOTIFICATION] observe=9 type=NON payload=9
+[client3] [DONE] 3/3 notifications
+[driver] client3: exit 0

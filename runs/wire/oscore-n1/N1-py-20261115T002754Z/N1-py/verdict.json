@@ -1,0 +1,29 @@
+{
+  "cell": "N1-py",
+  "verdict": "PASS",
+  "reason": "all peers exited 0, capture non-empty, every checker passed and rejected its negatives",
+  "peers": {
+    "c-server": {
+      "exit": -15,
+      "timed_out": false,
+      "binaries": {
+        "/Users/test/Desktop/AI2II/experiments/oscore-n1/coap/coap_server": "34f2ec00a8024c5fb1cce7cd2cef5c46ba50c1d364f3dabba8ad896b776cc464"
+      },
+      "commit": "9b7d28854e141511a590080eb884ff54df075aa7",
+      "dirty": false
+    },
+    "py-clients": {
+      "exit": 0,
+      "timed_out": false,
+      "binaries": {},
+      "commit": "2012909c24c8c2320d9a6c266afaa8d46b24d25d",
+      "dirty": false
+    }
+  },
+  "checkers": {
+    "observes-n1": 0
+  },
+  "contains_secrets": false,
+  "started_at": "2026-11-15T00:27:54Z",
+  "ended_at": "2026-11-15T00:28:44Z"
+}

@@ -1,0 +1,30 @@
+CHECK 1 [pcap_readable]: PASS - read 21 UDP datagrams from capture
+CHECK 2 [client_registrations]: PASS - observed 3 client Observe registration requests for /mult (draft Section 4.1, RFC 7641 Section 2)
+CHECK 3 [server_informative_response]: PASS - server returned CON 5.03 separate responses without Observe option for all 3 clients (draft Section 4.2, RFC 7252 Section 5.2.2)
+CHECK 4 [informative_tp_info]: PASS - all informative responses include valid tp_info (multicast 224.0.1.187:56830, token 0x11223344) (draft Section 4.2.1.1)
+CHECK 5 [multicast_notifications]: PASS - observed 9 NON multicast notifications to 224.0.1.187:56830 with matching group token 0x11223344 (draft Section 4.3, 4.4)
+CHECK 6 [increasing_observe_values]: PASS - Observe sequence numbers are strictly increasing (1 -> 9) (RFC 7641 Section 3.4, draft Section 4.3)
+CHECK 7 [notification_count]: PASS - each of the 3 clients observed at least 3 notifications (total 9 notifications across 3 client phases)
+--- negative: checkers/negatives/unrelated.pcap replaces {capture}
+CHECK 1 [pcap_readable]: PASS - read 2 UDP datagrams from capture
+CHECK 2 [client_registrations]: FAIL - observed only 0 client Observe registration requests for /mult (expected 3 per draft Section 4.1)
+--- negative: checkers/negatives/no_multicast.pcap replaces {capture}
+CHECK 1 [pcap_readable]: PASS - read 12 UDP datagrams from capture
+CHECK 2 [client_registrations]: PASS - observed 3 client Observe registration requests for /mult (draft Section 4.1, RFC 7641 Section 2)
+CHECK 3 [server_informative_response]: PASS - server returned CON 5.03 separate responses without Observe option for all 3 clients (draft Section 4.2, RFC 7252 Section 5.2.2)
+CHECK 4 [informative_tp_info]: PASS - all informative responses include valid tp_info (multicast 224.0.1.187:56830, token 0x11223344) (draft Section 4.2.1.1)
+CHECK 5 [multicast_notifications]: FAIL - observed only 0 multicast notifications (expected at least 3) (draft Section 4.3)
+--- negative: checkers/negatives/no_server_response.pcap replaces {capture}
+CHECK 1 [pcap_readable]: PASS - read 18 UDP datagrams from capture
+CHECK 2 [client_registrations]: PASS - observed 3 client Observe registration requests for /mult (draft Section 4.1, RFC 7641 Section 2)
+CHECK 3 [server_informative_response]: FAIL - no 5.03 informative response observed for client 1 at ('127.0.0.1', 59243) (draft Section 4.2)
+--- negative: checkers/negatives/fewer_clients.pcap replaces {capture}
+CHECK 1 [pcap_readable]: PASS - read 7 UDP datagrams from capture
+CHECK 2 [client_registrations]: FAIL - observed only 1 client Observe registration requests for /mult (expected 3 per draft Section 4.1)
+--- negative: checkers/negatives/observe_not_increasing.pcap replaces {capture}
+CHECK 1 [pcap_readable]: PASS - read 21 UDP datagrams from capture
+CHECK 2 [client_registrations]: PASS - observed 3 client Observe registration requests for /mult (draft Section 4.1, RFC 7641 Section 2)
+CHECK 3 [server_informative_response]: PASS - server returned CON 5.03 separate responses without Observe option for all 3 clients (draft Section 4.2, RFC 7252 Section 5.2.2)
+CHECK 4 [informative_tp_info]: PASS - all informative responses include valid tp_info (multicast 224.0.1.187:56830, token 0x11223344) (draft Section 4.2.1.1)
+CHECK 5 [multicast_notifications]: PASS - observed 9 NON multicast notifications to 224.0.1.187:56830 with matching group token 0x11223344 (draft Section 4.3, 4.4)
+CHECK 6 [increasing_observe_values]: FAIL - Observe sequence numbers not strictly increasing: 2 -> 1 (RFC 7641 Section 3.4, draft Section 4.3)
