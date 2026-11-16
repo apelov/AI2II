@@ -560,7 +560,8 @@ env_checks:   [{name, command}]                  # run first; any non-zero exit 
 peers:        [{name, path, family, under_test: bool, build, binaries: [paths], start, ready: {command, timeout_s}}]
               # a client peer MUST exit non-zero when its expected exchange does not complete
 capture:      {interface, filter}                # tcpdump; failure to capture -> BLOCKED
-cells:        [{name, server: <peer>, clients: [<peer>...], checkers: [<checker>...], timeout_s}]
+cells:        [{name, server: <peer>, clients: [<peer>...], checkers: [<checker>...], timeout_s,
+               claim_class}]                     # optional: observed-on-wire (default) | replayed-recording | simulated | mocked
 checkers:     [{name, family, observes_capture: bool, command, inputs: [paths], negatives: [{input: <path>, replaces: <path>}]}]
               # every cell lists its checkers; >= 1 of them has observes_capture: true and asserts that cell's exchange
               # in the captured bytes (the capture filter alone is not evidence)

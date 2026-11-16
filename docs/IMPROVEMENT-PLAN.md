@@ -49,8 +49,9 @@ Each item has an effort estimate, a test of whether it worked, and a condition t
 
 ### 4.1 Trial `kickoff` on a real project (first)
 
-Rerun one of the three projects, or start the next one, with `kickoff` and the generated
-`AGENTS.md`. Record whether agents state the goal back, use claim classes, write provenance and
+Start the next new project with `kickoff` and the generated `AGENTS.md`. Not a finished
+project: preparing a trial on WIMSE showed that `kickoff`'s questions ("what do you want to
+achieve?") make no sense for a project whose goal and results are already written down (see 4.5). Record whether agents state the goal back, use claim classes, write provenance and
 keep implementations apart, without being reminded.
 
 - Effort: one project.
@@ -65,10 +66,15 @@ in it) from the verdicts, with a claim class per row, and add a check that fails
 differs from what `summarize` would generate. This replaces hand-written counts, and it replaces
 the idea of linting prose for "PASS" and "live", which would be brittle.
 
-- Effort: small. It extends existing code in `wire/summarize.py`.
-- Worked if: a hand edit to a count makes the check fail.
-- Needs: a `claim_class` per cell in `interop.yaml` (default `observed-on-wire` for captured cells),
-  and a way to list non-bundle results (partner-attested, not-run) in the same file.
+**Done** (16 Nov): optional `claim_class` per cell (`observed-on-wire` by default,
+`replayed-recording`, `simulated`, `mocked`), copied into `verdict.json`;
+`wire summarize DIR --update RESULTS.md` writes the block, `--check RESULTS.md` fails on a hand
+edit or a stale block; bundles older than the change show as `unlabelled`. Results without a
+bundle (partner-attested, not run) go in a hand table outside the block, as `kickoff`'s
+`RESULTS.md` shows.
+
+- Limit: the class is per cell. A cell that mixes classes, like WIMSE's `chain` cell (wire traffic
+  plus replayed sandbox outcomes), must be split into cells to be labelled honestly.
 
 ### 4.3 The black-box pair, enforced by separation
 
@@ -93,6 +99,18 @@ and credit, and whether their material may be relicensed or linked. Nothing is p
 they have.
 
 - Effort: documentation only.
+
+### 4.5 `kickoff` for an existing project
+
+`kickoff` only fits the first minute of a new project. For a project that already exists it
+should read what is there (drafts named in the docs, implementations and families in
+`interop.yaml`, existing results) and ask the human only to confirm or correct, then add the rails
+without touching the project's files. It already keeps an existing `interop.yaml`.
+
+- Effort: small to medium.
+- Worked if: running it on WIMSE asks only confirmation questions, and surfaces contradictions in
+  the repository (WIMSE's `interop.yaml` and `SCENARIOS_AND_AUTHORS.md` disagree on who wrote the
+  chain peers) instead of asking what the project is for.
 
 ## 5. Deferred, with the trigger that would bring each back
 

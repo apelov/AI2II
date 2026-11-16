@@ -208,8 +208,11 @@ Implementations:
    and never call anything live unless it ran against the live system inside that bundle.
 6. When you create or substantially change an artifact, update its entry in `PROVENANCE.yaml`.
 7. A review finding needs the command that was run and its output. Triage goes in `RESULTS.md`.
-8. Counts and PASS statements in README, RESULTS and slides are copied from `verdict.json`
-   files, never typed from memory.
+8. Bundle results in `RESULTS.md` are generated: `python3 -m wire summarize runs/wire --update
+   RESULTS.md`, and `--check RESULTS.md` must pass before anything is published. README and
+   slides quote that block; never type a count or PASS from memory.
+   A cell whose peer replays recordings, runs on a simulated clock or answers from fixed
+   responses declares `claim_class` in `interop.yaml`.
 9. List what you could not verify. Stop after the assigned task.
 {build}
 ## Claim classes
@@ -281,6 +284,7 @@ def _interop(a: dict[str, Any]) -> str:
             "server": p["name"],
             "clients": clients,
             "checkers": ["observes-exchange"],
+            "claim_class": "observed-on-wire",
             "timeout_s": 60,
         }
         for p in a["peers"]
@@ -343,11 +347,20 @@ def _provenance(a: dict[str, Any]) -> str:
 def _results_md(a: dict[str, Any]) -> str:
     return f"""# Results: {a["_name"]}
 
-Every row comes from a `verdict.json` or names why it has none. Claim classes are defined in
-`AGENTS.md`; results of different classes are never added together.
+Claim classes are defined in `AGENTS.md`; results of different classes are never added together.
 
-| Result | Claim class | Bundle or source | Verdict | Commit |
-|---|---|---|---|---|
+## Bundle results (generated)
+
+Run `python3 -m wire summarize runs/wire --update RESULTS.md` after every run; it replaces the
+block between its markers. `python3 -m wire summarize runs/wire --check RESULTS.md` fails if the
+block was edited by hand or is stale.
+
+## Results without a bundle
+
+Partner-attested results, and anything else that is not a `wire` bundle. Name the source.
+
+| Result | Claim class | Source | Confirmed by |
+|---|---|---|---|
 
 ## Not run
 
@@ -391,13 +404,18 @@ def init(target: Path, answers_file: str | None, force: bool) -> int:
             "no answers and no terminal. Run `python3 -m kickoff --questions > answers.yaml`, "
             "ask the human every question, then `python3 -m kickoff DIR --answers answers.yaml`"
         )
-    existing = [f for f in FILES if (target / f).exists()]
+    # A project's real interop.yaml is its experiment, not a rail: never replace it.
+    keep_manifest = (target / "interop.yaml").exists()
+    existing = [f for f in FILES if f != "interop.yaml" and (target / f).exists()]
     if existing and not force:
         raise InitError(
             f"{target} already has {', '.join(existing)}; use --force to overwrite"
         )
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
     files, warnings = render(answers, target.resolve().name, today)
+    if keep_manifest:
+        del files["interop.yaml"]
+        print("kept the existing interop.yaml (kickoff never replaces it)")
     target.mkdir(parents=True, exist_ok=True)
     for fname, text in files.items():
         (target / fname).write_text(text, encoding="utf-8")

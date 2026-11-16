@@ -368,6 +368,7 @@ def run_cell(m: Manifest, cell: str, out: Path) -> tuple[str, str, Path]:
     )
     result = {
         "cell": cell,
+        "claim_class": c.cell["claim_class"],
         "verdict": verdict,
         "reason": reason,
         "peers": c.peers,

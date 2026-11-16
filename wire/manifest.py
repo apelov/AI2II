@@ -19,6 +19,11 @@ _NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 _SECRET = re.compile(r"[A-Za-z0-9._-]+")
 
 
+# What a cell's PASS is evidence of. A cell whose peer replays recorded outcomes, runs on a
+# simulated clock, or answers from fixed responses must say so; summaries never add up classes.
+CLAIM_CLASSES = ("observed-on-wire", "replayed-recording", "simulated", "mocked")
+
+
 def secret_name_ok(value: Any) -> bool:
     """A secret is a plain file name directly under secrets/."""
     return (
@@ -364,8 +369,12 @@ def load(path: str | Path) -> Manifest:
             or timeout <= 0
         ):
             c.err(f"{where}: 'timeout_s' must be a positive number")
+        claim_class = cell.get("claim_class", CLAIM_CLASSES[0])
+        if claim_class not in CLAIM_CLASSES:
+            c.err(f"{where}: 'claim_class' must be one of {', '.join(CLAIM_CLASSES)}")
         cells[name] = {
             "name": name,
+            "claim_class": claim_class,
             "server": server,
             "clients": clients,
             "checkers": names,

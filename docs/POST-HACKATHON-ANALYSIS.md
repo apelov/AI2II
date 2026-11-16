@@ -48,7 +48,7 @@ Finding: in both projects the value came from a thin layer (a contract, an indep
 
 ## 5. Third data point: an external contributor on `oscore-n1`
 
-Chun-Yu Yen (Jenny) worked alone during the event (commits of 14 Nov), without contact with the team, and opened PR #1 on `apelov/AI2II`, merged on 16 Nov. She wrote a Python client and server for CoAP Observe multicast notifications (nosec profile of `draft-ietf-core-observe-multicast-notifications-15`) from the draft text, then ran two `wire` cells against the existing C implementation: `N1-py` (C server, Python clients) and `N1-pyserver` (Python server, C clients). Both are reported PASS with all 7 `observes-n1` checks and all 5 negatives rejected, with `verify-bundle` OK. She also ran exploratory adversarial tests (no bundle) and reports 7 issues in the C client, plus 4 points of draft feedback. All of this is from her PR description.
+Chun-Yu Yen (Jenny) worked alone during the event (commits of 14 Nov), without contact with the team, and opened PR #1 on `apelov/AI2II`, merged on 16 Nov. She wrote a Python client and server for CoAP Observe multicast notifications (nosec profile of `draft-ietf-core-observe-multicast-notifications-15`) from the draft text, then ran two `wire` cells against the existing C implementation: `N1-py` (C server, Python clients) and `N1-pyserver` (Python server, C clients). Both are reported PASS with all 7 `observes-n1` checks and all 5 negatives rejected, with `verify-bundle` OK. The PR also contains exploratory adversarial tests (no bundle) and 4 points of draft feedback. The 7 issues in the C client listed in its `RESULT.md` were found by Alexander Pelov, not by Jenny. The rest is from her PR description.
 
 What it adds:
 
@@ -56,7 +56,7 @@ What it adds:
 - **Same independence gap as the other two projects.** Every implementation under test is from one family, so only the checker is independent.
 - **A checker coverage gap.** `observes-n1` mostly asserts server behaviour (checks 3-7). In `N1-py` the Python client is therefore checked only by its own exit code and log, and `N1-pyserver` is where the checker really tests the Python code. A PASS says something different about each peer, and the verdict does not say which.
 - **Onboarding, not tooling, was the barrier.** She could not connect with the team during the event and completed the work alone; the runbook, the submission template and the clean-machine test were enough for that.
-- **Adversarial testing found more than the conformance cells.** The 7 C-client issues came from the exploratory runs, which have no evidence bundle. This supports giving negative-peer tests a bundle form.
+- **Adversarial testing found more than the conformance cells.** The 7 C-client issues (found by Alexander Pelov) came from exploratory runs, which have no evidence bundle. This supports giving negative-peer tests a bundle form.
 
 ## 6. Template or usage? Both, and mostly usage
 

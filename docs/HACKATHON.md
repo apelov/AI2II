@@ -107,6 +107,18 @@ git -C my-experiment status --short          # must be empty
 python3 -m wire run my-experiment/interop.yaml --cell a-serves-b --out runs/wire/my-experiment/$(date -u +%Y%m%dT%H%M%SZ)
 ```
 
+Keep the published results generated, never typed:
+
+```sh
+python3 -m wire summarize runs/wire --update RESULTS.md   # writes the results block
+python3 -m wire summarize runs/wire --check RESULTS.md    # fails if the block was hand-edited or is stale
+```
+
+Each row carries the cell's `claim_class`. Declare it in `interop.yaml` when a peer replays
+recorded outcomes, runs on a simulated clock or answers from fixed responses
+(`replayed-recording`, `simulated`, `mocked`); the default is `observed-on-wire`. Totals are
+given per class and never added across classes.
+
 | Verdict | Exit | Meaning | What to do |
 |---|---|---|---|
 | PASS | 0 | peers exited 0, capture non-empty, every checker passed and rejected every negative | share the bundle |

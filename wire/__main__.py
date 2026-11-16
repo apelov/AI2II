@@ -45,6 +45,18 @@ def _summarize(args: argparse.Namespace) -> int:
     if not records:
         print(f"wire: no bundles found under {root}", file=sys.stderr)
         return 2
+    if args.check or args.update or args.markdown:
+        generated = summarize.markdown(records, root)
+        if args.update:
+            summarize.update(Path(args.update), generated)
+            print(f"updated results block in {args.update}")
+            return 0
+        if args.check:
+            problem = summarize.check(Path(args.check), generated)
+            print(problem or f"OK: {args.check} matches the bundles")
+            return 1 if problem else 0
+        print(generated, end="")
+        return 0
     if args.json:
         print(json.dumps(records, indent=2))
     else:
@@ -74,6 +86,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("dir")
     p.add_argument("--json", action="store_true")
+    p.add_argument("--markdown", action="store_true", help="print the results block")
+    p.add_argument("--update", metavar="FILE", help="write the results block into FILE")
+    p.add_argument(
+        "--check", metavar="FILE", help="fail if FILE's results block is not generated"
+    )
     p.set_defaults(fn=_summarize)
     args = ap.parse_args(argv)
     try:

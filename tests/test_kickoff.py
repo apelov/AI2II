@@ -148,3 +148,18 @@ def test_questions_template_is_a_valid_answers_file_shape():
     assert r.returncode == 0
     t = yaml.safe_load(r.stdout)
     assert "goal" in t and isinstance(t["peers"], list)
+
+
+def test_existing_interop_manifest_is_kept_even_with_force():
+    with tempfile.TemporaryDirectory() as t:
+        tmp = Path(t)
+        proj = tmp / "proj"
+        proj.mkdir()
+        (proj / "interop.yaml").write_text("experiment: real\n")
+        r = run_init(tmp, answers())
+        assert r.returncode == 0, r.stderr
+        assert "kept the existing interop.yaml" in r.stdout
+        assert (proj / "interop.yaml").read_text() == "experiment: real\n"
+        assert (proj / "AGENTS.md").exists()
+        assert run_init(tmp, answers(), "--force").returncode == 0
+        assert (proj / "interop.yaml").read_text() == "experiment: real\n"
