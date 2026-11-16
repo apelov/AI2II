@@ -1,0 +1,5 @@
+clang -Wall -Wextra -O2 -I/opt/homebrew/Cellar/libcoap/4.3.5b/include -I/opt/homebrew/Cellar/libcbor/0.14.1/include -c src/server.c -o src/server.o
+clang -Wall -Wextra -O2 -I/opt/homebrew/Cellar/libcoap/4.3.5b/include -I/opt/homebrew/Cellar/libcbor/0.14.1/include -c src/cbor_helper.c -o src/cbor_helper.o
+clang -Wall -Wextra -O2 -I/opt/homebrew/Cellar/libcoap/4.3.5b/include -I/opt/homebrew/Cellar/libcbor/0.14.1/include -c src/oscore_helper.c -o src/oscore_helper.o
+clang src/server.o src/cbor_helper.o src/oscore_helper.o -o coap_server -L/opt/homebrew/Cellar/libcoap/4.3.5b/lib -lcoap-3-openssl -L/opt/homebrew/Cellar/libcbor/0.14.1/lib -lcbor
+ld: warning: building for macOS-27.0, but linking with dylib '/opt/homebrew/opt/libcbor/lib/libcbor.0.14.dylib' which was built for newer version 27.2

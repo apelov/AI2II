@@ -1,0 +1,21 @@
+Listening on coap://127.0.0.1:5683/mult
+[REGISTER] 127.0.0.1:59716 token=eba1ecdc3db3888b mid=56890
+[GROUP] started: phantom GET /mult Observe=0, token T=39326226, notifications 127.0.0.1:5683 -> 224.0.1.187:56830
+[INFORMATIVE] CON 5.03 to 127.0.0.1:59716 token=eba1ecdc3db3888b mid=27526 (observers=1)
+[ACK] from 127.0.0.1:59716 mid=27526
+[NOTIFY] NON 2.05 Observe=1 state=1 -> 224.0.1.187:56830
+[NOTIFY] NON 2.05 Observe=2 state=2 -> 224.0.1.187:56830
+[NOTIFY] NON 2.05 Observe=3 state=3 -> 224.0.1.187:56830
+[REGISTER] 127.0.0.1:49169 token=feaeb4b029e6a55d mid=44661
+[INFORMATIVE] CON 5.03 to 127.0.0.1:49169 token=feaeb4b029e6a55d mid=27530 (observers=2)
+[ACK] from 127.0.0.1:49169 mid=27530
+[NOTIFY] NON 2.05 Observe=4 state=4 -> 224.0.1.187:56830
+[NOTIFY] NON 2.05 Observe=5 state=5 -> 224.0.1.187:56830
+[NOTIFY] NON 2.05 Observe=6 state=6 -> 224.0.1.187:56830
+[REGISTER] 127.0.0.1:52227 token=e249bb1ebb76060b mid=21815
+[INFORMATIVE] CON 5.03 to 127.0.0.1:52227 token=e249bb1ebb76060b mid=27534 (observers=3)
+[ACK] from 127.0.0.1:52227 mid=27534
+[NOTIFY] NON 2.05 Observe=7 state=7 -> 224.0.1.187:56830
+[NOTIFY] NON 2.05 Observe=8 state=8 -> 224.0.1.187:56830
+[NOTIFY] NON 2.05 Observe=9 state=9 -> 224.0.1.187:56830
+Server stopped (observers=3, state=9).
