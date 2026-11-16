@@ -18,7 +18,22 @@ python3 -m wire verify-bundle /tmp/echo/echo  # prints OK
 If the example gives `BLOCKED` with a capture reason, fix capture permission first (macOS: membership in group `access_bpf`, installed with Wireshark's ChmodBPF; Linux: root or `CAP_NET_RAW` on tcpdump); nothing
 else will work without it. Wireshark (`tshark`, `editcap`) is needed for secured protocols.
 
+## 0b. Start your project (always, before any code or agent)
+
+```sh
+python3 -m kickoff my-experiment     # asks what you want to achieve, writes the rails
+git -C my-experiment add -A && git -C my-experiment commit -m "AI2II rails"
+```
+
+It asks your goal, the protocol authority, the implementations and who wrote them, the checker's
+model family and the reviewer, and refuses a checker from the same family as an implementation
+under test. It writes `AGENTS.md` (the contract every agent reads), `CLAUDE.md` and `GEMINI.md`
+(pointers to it), `PROJECT.md`, an `interop.yaml` skeleton, `PROVENANCE.yaml` and `RESULTS.md`.
+Working from an agent session? Paste the prompt in [`KICKOFF.md`](KICKOFF.md) as its first message.
+
 ## 1. Describe your experiment
+
+`kickoff` wrote a skeleton `interop.yaml`; fill in its TODOs as follows.
 
 Make a directory for it, committed in git (a PASS requires that directory to be clean, so
 the checker code that produced a verdict is pinned by its commit). Put the implementations

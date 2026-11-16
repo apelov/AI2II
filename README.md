@@ -10,8 +10,11 @@ Prepared for the **IETF 127 Hackathon, San Francisco, 14–15 November 2026** (c
 
 ## What do you want to achieve?
 
+**Every project starts with one command:** `python3 -m kickoff my-project`. It asks what you want to achieve and writes the rails (`AGENTS.md`, `PROJECT.md`, an `interop.yaml` skeleton, `PROVENANCE.yaml`, `RESULTS.md`) that every agent then reads on its own. Starting from an agent session instead? Paste the prompt in [`docs/KICKOFF.md`](docs/KICKOFF.md).
+
 | I want to… | Start here |
 |---|---|
+| **Start a project (always first)** | `python3 -m kickoff my-project`, or the prompt in [`docs/KICKOFF.md`](docs/KICKOFF.md) |
 | **See it work in one command** | `./demo.sh`: runs an example under capture, verifies the bundle and explains it |
 | **Take part in the Hackathon** | [`docs/HACKATHON.md`](docs/HACKATHON.md): the runbook, from setup to a shareable bundle |
 | **Understand a bundle file by file** | [`docs/BUNDLE.md`](docs/BUNDLE.md) |
