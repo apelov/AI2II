@@ -94,6 +94,13 @@ class _Cell:
         }
         self.checker_exits: dict[str, int] = {}
 
+    def rel(self, path: Path) -> str:
+        """A path relative to the experiment directory (peers outside it keep only their name)."""
+        try:
+            return str(path.resolve().relative_to(self.m.root.resolve())) or "."
+        except ValueError:
+            return path.name
+
     def argv(self, command: str) -> list[str]:
         return expand(command, self.bundle, self.pcap, self.bundle / "inputs")
 
@@ -115,7 +122,9 @@ class _Cell:
         self.env["capture_interface"] = interface
 
         commit, dirty = git_state(m.root)
-        self.env["experiment"] = {"path": str(m.root), "commit": commit, "dirty": dirty}
+        # Paths are recorded relative to the experiment, never as absolute local paths: a bundle
+        # is published, and the machine's directory layout is not evidence.
+        self.env["experiment"] = {"path": m.root.name, "commit": commit, "dirty": dirty}
         if commit is None or dirty is None:
             return "BLOCKED", "experiment directory is not a git work tree"
         if dirty:
@@ -138,7 +147,7 @@ class _Cell:
             pcommit, pdirty = git_state(p["path"])
             self.peers[name].update(commit=pcommit, dirty=pdirty)
             self.env["peers"][name] = {
-                "path": str(p["path"]),
+                "path": self.rel(p["path"]),
                 "commit": pcommit,
                 "dirty": pdirty,
                 "build_exit": None,
@@ -164,7 +173,7 @@ class _Cell:
                         "BLOCKED",
                         f"declared binary missing after build: {name}: {b}",
                     )
-                rec["binaries"][str(path)] = bundle_mod.sha256_file(path)
+                rec["binaries"][self.rel(path)] = bundle_mod.sha256_file(path)
             self.peers[name]["binaries"] = dict(rec["binaries"])
 
         try:

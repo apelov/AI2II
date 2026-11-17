@@ -149,7 +149,8 @@ def test_example_pass_and_bundle_integrity() -> None:
     with tempfile.TemporaryDirectory() as t:
         tmp = Path(t)
         out = tmp / "out"
-        r = run_cell(make_exp(tmp), out)
+        m = make_exp(tmp)
+        r = run_cell(m, out)
         assert r.returncode == 0, r.stdout + r.stderr
         b = out / "echo"
         for name in (
@@ -170,10 +171,14 @@ def test_example_pass_and_bundle_integrity() -> None:
             env["experiment"]["dirty"] is False
             and len(env["experiment"]["commit"]) == 40
         )
+        # No absolute local paths: everything is relative to the experiment directory.
+        assert str(tmp) not in (b / "env.json").read_text()
+        assert env["experiment"]["path"] == m.parent.name
         for path, digest in env["peers"]["echo-server"]["binaries"].items():
+            assert not Path(path).is_absolute()
             assert (
                 subprocess.run(
-                    ["shasum", "-a", "256", path],
+                    ["shasum", "-a", "256", str(m.parent / path)],
                     capture_output=True,
                     text=True,
                     check=False,
